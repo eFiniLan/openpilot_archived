@@ -317,10 +317,12 @@ class CarInterface(object):
     elif not ret.cruiseState.enabled:
       events.append(create_event('pcmDisable', [ET.USER_DISABLE]))
 
+    # temporary disable on gas pedal pressed
     if ret.gasPressed and ret.cruiseState.enabled:
       events.append(create_event('steerTempUnavailable', [ET.NO_ENTRY, ET.WARNING]))
 
-    if (self.CS.right_blinker_on or self.CS.left_blinker_on) and ret.cruiseState.enabled:
+    # temporary disable on blinkers
+    if (ret.leftBlinker or ret.rightBlinker) and ret.cruiseState.enabled:
       events.append(create_event('steerTempUnavailable', [ET.NO_ENTRY, ET.WARNING]))
 
     # disable on pedals rising edge or when brake is pressed and speed isn't zero
