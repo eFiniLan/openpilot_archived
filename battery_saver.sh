@@ -32,6 +32,12 @@ check_n_set_freq() {
   echo $freq > ./$cpu/cpufreq/scaling_min_freq
 }
 
+
+# some default values
+temp_limit=400 # temp limit - 40 degree
+vol_full=4350000 # voltage max
+vol_limit=vol_full*0.5 # voltage limit
+
 # when first execute, we set CPU freq to min/max
 PREVIOUS=$(cat /sys/class/power_supply/usb/present)
 set_cpu_freq $PREVIOUS
@@ -42,22 +48,19 @@ echo 1 > /sys/class/power_supply/battery/charging_enabled
 # if USB status changed, we update CPU frequency accordingly.
 while [ 1 ]; do
   temp=$(cat /sys/class/power_supply/battery/temp)
-  temp_limit=400 # 40 degree
-  vol_full=4350000
-  vol_limit=vol_full*0.5
   vol_now=$(cat /sys/class/power_supply/battery/voltage_now)
 
-  CHARGING_CURRENT=$(cat /sys/class/power_supply/battery/charging_enabled)
+  charging_status=$(cat /sys/class/power_supply/battery/charging_enabled)
 
   # temp is too high and we still have enough voltage, then we stop charging battery
   if ([ $temp -gt $temp_limit ] && [ $vol_now -gt $vol_limit ]); then
-    CHARGING_NEW=0
+    allow_charge=0
   else
-    CHARGING_NEW=1
+    allow_charge=1
   fi
 
-  if [ $CHARGING_CURRENT -ne $CHARGING_NEW ]; then
-    echo $CHARGING_NEW > /sys/class/power_supply/battery/charging_enabled
+  if [ $charging_status -ne $allow_charge ]; then
+    echo $allow_charge > /sys/class/power_supply/battery/charging_enabled
   fi
 
   CURRENT=$(cat /sys/class/power_supply/usb/present)
