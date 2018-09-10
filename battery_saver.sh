@@ -4,7 +4,7 @@
 # AUTHOR: Rick Lan <ricklan@gmail.com>
 # DATE:   2018-09-10
 #
-# PURPOSE: Set CPU to the minimum frequency if unplugged from USB, otherwise set to maximum frequency
+# PURPOSE: Reduce battery usage and heat depending on the status of temp + usb status (connect or disconnect)
 
 # function to loop through available CPUs
 # @param $1 set to max when it's 1, set to min when it's 0
@@ -33,13 +33,34 @@ check_n_set_freq() {
 }
 
 # when first execute, we set CPU freq to min/max
-PREVIOUS=$(cat /sys/class/power_supply/usb/online)
+PREVIOUS=$(cat /sys/class/power_supply/usb/present)
 set_cpu_freq $PREVIOUS
+
+# when first execute, we set to start charging
+echo 1 > /sys/class/power_supply/battery/charging_enabled
 
 # if USB status changed, we update CPU frequency accordingly.
 while [ 1 ]; do
-  CURRENT=$(cat /sys/class/power_supply/usb/online)
+  temp=$(cat /sys/class/power_supply/battery/temp)
+  temp_limit=400 # 40 degree
+  vol_full=4350000
+  vol_limit=vol_full*0.5
+  vol_now=$(cat /sys/class/power_supply/battery/voltage_now)
 
+  CHARGING_CURRENT=$(cat /sys/class/power_supply/battery/charging_enabled)
+
+  # temp is too high and we still have enough voltage, then we stop charging battery
+  if ([ $temp -gt $temp_limit ] && [ $vol_now -gt $vol_limit ]); then
+    CHARGING_NEW=0
+  else
+    CHARGING_NEW=1
+  fi
+
+  if [ $CHARGING_CURRENT -ne $CHARGING_NEW ]; then
+    echo $CHARGING_NEW > /sys/class/power_supply/battery/charging_enabled
+  fi
+
+  CURRENT=$(cat /sys/class/power_supply/usb/present)
   if [ $CURRENT -ne $PREVIOUS ]; then
     set_cpu_freq $CURRENT
     PREVIOUS=$(echo $CURRENT)
@@ -47,3 +68,5 @@ while [ 1 ]; do
 
   sleep 1
 done
+
+
