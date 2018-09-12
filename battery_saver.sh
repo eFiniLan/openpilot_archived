@@ -35,7 +35,7 @@ check_n_set_freq() {
 
 # some default values
 temp_limit=400 # temp limit - 40 degree
-bat_limit = 50 # battery limit (percentage)
+bat_limit=50 # battery limit (percentage)
 
 # when first execute, we set CPU freq to min/max
 PREVIOUS=$(cat /sys/class/power_supply/usb/present)
