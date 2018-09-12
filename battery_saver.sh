@@ -9,8 +9,8 @@
 #          * when phone is not connected to USB, then change CPU max scale freq to minimum.
 
 # default values
-temp_limit=400 # temp limit - 40 degree
-bat_limit=50 # battery limit (percentage)
+temp_limit=450 # temp limit - 45 degree, match thermald.py
+bat_limit=35 # battery limit (percentage)
 
 # function to loop through available CPUs
 # @param $1 set to max when it's 1, set to min when it's 0
