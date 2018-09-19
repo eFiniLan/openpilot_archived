@@ -42,12 +42,18 @@ check_n_set_freq() {
   #echo $freq > ./$2/cpufreq/scaling_min_freq
 }
 
+check_n_enable_disable_cpu_2_3() {
+  cd /sys/devices/system/cpu/
+    echo $1 > ./cpu2/online
+    echo $1 > ./cpu3/online
+}
 
 ##### logic start here #####
 
 # when first execute, we set CPU freq to min/max
 PREVIOUS=$(cat /sys/class/power_supply/usb/present)
 set_cpu_freq $PREVIOUS
+check_n_enable_disable_cpu_2_3 $PREVIOUS
 
 # when first execute, we set to start charging
 echo 1 > /sys/class/power_supply/battery/charging_enabled
@@ -75,6 +81,7 @@ while [ 1 ]; do
   CURRENT=$(cat /sys/class/power_supply/usb/present)
   if [ $CURRENT -ne $PREVIOUS ]; then
     set_cpu_freq $CURRENT
+    check_n_enable_disable_cpu_2_3 $CURRENT
     PREVIOUS=$(echo $CURRENT)
   fi
 
