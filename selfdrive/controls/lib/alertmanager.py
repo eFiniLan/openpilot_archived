@@ -181,11 +181,17 @@ class AlertManager(object):
         AlertStatus.userPrompt, AlertSize.mid,
         Priority.LOW, None, None, 0., 0., .2),
 
-    "debugAlert": Alert( 
-        "DEBUG ALERT", 
-        "", 
-        AlertStatus.userPrompt, AlertSize.mid, 
-        Priority.LOW, None, None, .1, .1, .1), 
+    "belowSteerSpeed": Alert(
+        "TAKE CONTROL",
+        "Steer Unavailable Below ",
+        AlertStatus.userPrompt, AlertSize.mid,
+        Priority.MID, "steerRequired", None, 0., 0., .1),
+
+    "debugAlert": Alert(
+        "DEBUG ALERT",
+        "",
+        AlertStatus.userPrompt, AlertSize.mid,
+        Priority.LOW, None, None, .1, .1, .1),
 
     # Non-entry only alerts
     "wrongCarModeNoEntry": Alert(
