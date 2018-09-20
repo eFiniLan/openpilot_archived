@@ -50,12 +50,16 @@ check_n_enable_disable_cpu_2_3() {
 
 ##### logic start here #####
 
-# when first execute, we set CPU freq to min/max
 PREVIOUS=$(cat /sys/class/power_supply/usb/present)
+
+# when first execute
+
+# set CPU freq to max
 set_cpu_freq $PREVIOUS
+# enable all cpu core
 check_n_enable_disable_cpu_2_3 $PREVIOUS
 
-# when first execute, we set to start charging
+# allow charging
 echo 1 > /sys/class/power_supply/battery/charging_enabled
 
 # loop every second
@@ -82,8 +86,8 @@ while [ 1 ]; do
   if [ $CURRENT -ne $PREVIOUS ]; then
     set_cpu_freq $CURRENT
     check_n_enable_disable_cpu_2_3 $CURRENT
-    PREVIOUS=$(echo $CURRENT)
   fi
+  PREVIOUS=$(echo $CURRENT)
 
   sleep 1
 done
