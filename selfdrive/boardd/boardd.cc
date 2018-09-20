@@ -40,7 +40,7 @@
 #define SAFETY_FORD 5
 #define SAFETY_CADILLAC 6
 #define SAFETY_HYUNDAI 7
-#define SAFETY_LEXUS_AVE30 8
+#define SAFETY_LEXUS_ISH 8
 #define SAFETY_TOYOTA_NOLIMITS 0x1336
 #define SAFETY_ALLOUTPUT 0x1337
 
@@ -118,8 +118,8 @@ void *safety_setter_thread(void *s) {
   case (int)cereal::CarParams::SafetyModels::HYUNDAI:
     safety_setting = SAFETY_HYUNDAI;
     break;
-  case (int)cereal::CarParams::SafetyModels::LEXUS_AVE30:
-    safety_setting = SAFETY_LEXUS_AVE30;
+  case (int)cereal::CarParams::SafetyModels::LEXUS_ISH:
+    safety_setting = SAFETY_LEXUS_ISH;
     break;
   default:
     LOGE("unknown safety model: %d", safety_model);
@@ -592,7 +592,7 @@ void *pigeon_thread(void *crap) {
       //printf("got %d\n", len);
       alen += len;
     }
-    if (alen > 0) { 
+    if (alen > 0) {
       if (dat[0] == (char)0x00){
         LOGW("received invalid ublox message, resetting pigeon");
         pigeon_init();
