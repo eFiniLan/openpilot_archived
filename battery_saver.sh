@@ -42,18 +42,9 @@ check_n_set_freq() {
   #echo $freq > ./$2/cpufreq/scaling_min_freq
 }
 
-check_n_enable_disable_cpu_2_3() {
-  cd /sys/devices/system/cpu/
-    echo $1 > ./cpu2/online
-    echo $1 > ./cpu3/online
-}
-
 ##### logic start here #####
 
 # when first execute
-
-# enable all cpu core
-check_n_enable_disable_cpu_2_3 1
 
 # set CPU freq to max
 set_cpu_freq 1
@@ -85,7 +76,6 @@ while [ 1 ]; do
   # if USB status changed, we update CPU frequency accordingly.
   CURRENT=$(cat /sys/class/power_supply/usb/present)
   if [ $CURRENT -ne $PREVIOUS ]; then
-    check_n_enable_disable_cpu_2_3 $CURRENT
     set_cpu_freq $CURRENT
     PREVIOUS=$(echo $CURRENT)
   fi
