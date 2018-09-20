@@ -12,6 +12,18 @@
 temp_limit=460 # temp limit - 46 degree, match thermald.py
 bat_limit=35 # battery limit (percentage)
 
+# a few system optimisation, may only effect from next reboot
+# Wi-Fi (scanning always available) off
+settings put global wifi_scan_always_enabled 0
+# disable notify the user of open networks.
+settings put global wifi_networks_available_notification_on 0
+# keep wifi on during sleep only when plugged in
+settings put global wifi_sleep_policy 1
+# Remove nfc from airplane mode
+settings put global airplane_mode_radios cell,bluetooth,wifi,wimax
+# Turn on airplane mode
+settings put global airplane_mode_on 1
+
 # function to loop through available CPUs
 # @param $1 set to max when it's 1, set to min when it's 0
 set_cpu_freq(){
