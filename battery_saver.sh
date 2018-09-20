@@ -11,6 +11,7 @@
 # default values
 temp_limit=460 # temp limit - 46 degree, match thermald.py
 bat_limit=35 # battery limit (percentage)
+cpu_power_bat_limit=5 # when power reach this number, we turn cpu freq back on
 
 # a few system optimisation, may only effect from next reboot
 # Wi-Fi (scanning always available) off
@@ -45,9 +46,6 @@ check_n_set_freq() {
 
   # set max/min freq to scaling_max_freq
   echo $freq > ./$2/cpufreq/scaling_max_freq
-
-  # we dont modify min scaling freq for now.
-  #echo $freq > ./$2/cpufreq/scaling_min_freq
 }
 
 ##### logic start here #####
@@ -81,13 +79,22 @@ while [ 1 ]; do
     echo $allow_charge > /sys/class/power_supply/battery/charging_enabled
   fi
 
-  # if USB status changed, we update CPU frequency accordingly.
+  # current usb status
   CURRENT=$(cat /sys/class/power_supply/usb/present)
-  if [ $CURRENT -ne $PREVIOUS ]; then
-    set_cpu_freq $CURRENT
-    PREVIOUS=$(echo $CURRENT)
-  fi
 
+  # we set cpu back to original freq when usb is not charging
+  # and bat is less than the limit
+  # so when next time we boot up, it boot faster.
+  if ([ $bat_now -le $cpu_power_bat_limit ] && [ $PREVIOUS -eq "0" ]); then
+    set_cpu_freq 1
+    PREVIOUS=1
+  else
+    # if USB status changed, we update CPU frequency accordingly.
+    if [ $CURRENT -ne $PREVIOUS ]; then
+      set_cpu_freq $CURRENT
+      PREVIOUS=$(echo $CURRENT)
+    fi
+  fi
   sleep 1
 done
 
