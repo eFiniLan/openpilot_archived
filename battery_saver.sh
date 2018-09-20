@@ -9,7 +9,7 @@
 #          * when phone is not connected to USB, then change CPU max scale freq to minimum.
 
 # default values
-temp_limit=450 # temp limit - 45 degree, match thermald.py
+temp_limit=460 # temp limit - 46 degree, match thermald.py
 bat_limit=35 # battery limit (percentage)
 
 # function to loop through available CPUs
@@ -42,14 +42,24 @@ check_n_set_freq() {
   #echo $freq > ./$2/cpufreq/scaling_min_freq
 }
 
+check_n_enable_disable_cpu_2_3() {
+  cd /sys/devices/system/cpu/
+    echo $1 > ./cpu2/online
+    echo $1 > ./cpu3/online
+}
 
 ##### logic start here #####
 
-# when first execute, we set CPU freq to min/max
 PREVIOUS=$(cat /sys/class/power_supply/usb/present)
-set_cpu_freq $PREVIOUS
 
-# when first execute, we set to start charging
+# when first execute
+
+# set CPU freq to max
+set_cpu_freq $PREVIOUS
+# enable all cpu core
+check_n_enable_disable_cpu_2_3 $PREVIOUS
+
+# allow charging
 echo 1 > /sys/class/power_supply/battery/charging_enabled
 
 # loop every second
@@ -75,8 +85,9 @@ while [ 1 ]; do
   CURRENT=$(cat /sys/class/power_supply/usb/present)
   if [ $CURRENT -ne $PREVIOUS ]; then
     set_cpu_freq $CURRENT
-    PREVIOUS=$(echo $CURRENT)
+    check_n_enable_disable_cpu_2_3 $CURRENT
   fi
+  PREVIOUS=$(echo $CURRENT)
 
   sleep 1
 done
