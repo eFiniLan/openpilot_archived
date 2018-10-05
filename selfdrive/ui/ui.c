@@ -1005,8 +1005,9 @@ static void ui_draw_vision_header(UIState *s) {
   nvgFill(s->vg);
 
   bool hasSidebar = !s->scene.uilayout_sidebarcollapsed;
+  bool is_engaged = (s->status == STATUS_ENGAGED);
   ui_draw_vision_speed(s);
-  if (hasSidebar) {
+  if (hasSidebar && is_engaged) {
     ui_draw_vision_maxspeed(s);
     ui_draw_vision_wheel(s);
   }
@@ -1022,7 +1023,8 @@ static void ui_draw_vision_footer(UIState *s) {
 
   // Driver Monitoring
   bool hasSidebar = !s->scene.uilayout_sidebarcollapsed;
-  if (hasSidebar) {
+  bool is_engaged = (s->status == STATUS_ENGAGED);
+  if (hasSidebar && is_engaged) {
     ui_draw_vision_face(s);
   }
 }
