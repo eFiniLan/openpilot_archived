@@ -1006,7 +1006,9 @@ static void ui_draw_vision_header(UIState *s) {
 
   bool hasSidebar = !s->scene.uilayout_sidebarcollapsed;
   bool is_engaged = (s->status == STATUS_ENGAGED);
-  ui_draw_vision_speed(s);
+  if (!is_engaged) {
+    ui_draw_vision_speed(s);
+  }
   if (hasSidebar && is_engaged) {
     ui_draw_vision_maxspeed(s);
     ui_draw_vision_wheel(s);
