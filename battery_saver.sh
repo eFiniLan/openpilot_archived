@@ -9,12 +9,16 @@
 #          * When phone is not connected to USB, then change CPU max scale freq to minimum.
 #          * (OPTIONAL) When no USB connection for xxx hours, execute shut down command to reserve battery.
 
-# default values
-temp_limit=460 # temp limit - 46 degree, match thermald.py
-bat_limit=35 # battery limit (percentage)
-cpu_power_bat_limit=5 # when power reach this number, we turn cpu freq back on
+
+
+# default values, change this to suit your need
 power_off_timer=3 # shut down after xxx hours of no USB connection, set to 0 to disable this.
 sleep=5 # sleep timer, in seconds, how often you would like the script to query the system status.
+temp_limit=460 # temp limit - 46 degree, match thermald.py, it stop charging when reach this temp level.
+bat_limit=35 # battery limit (percentage), if battery capacity is lower than this then it will keep charging.
+cpu_power_bat_limit=5 # when battery reach this capacity, we turn cpu freq back on prepare for a shutdown
+
+
 
 # a few system optimisation, may only effect from next reboot
 # Wi-Fi (scanning always available) off
@@ -25,6 +29,8 @@ settings put global wifi_networks_available_notification_on 0
 settings put global wifi_sleep_policy 1
 # disable nfc
 LD_LIBRARY_PATH="" svc nfc disable
+
+
 
 # function to loop through available CPUs
 # @param $1 set to max when it's 1, set to min when it's 0
@@ -53,7 +59,13 @@ check_n_set_freq() {
   echo $freq > ./$2/cpufreq/scaling_max_freq
 }
 
-##### logic start here #####
+set_charging_status() {
+  echo $1 > /sys/class/power_supply/battery/charging_enabled
+}
+
+####################################
+######### logic start here #########
+####################################
 
 # when first execute
 
@@ -61,14 +73,13 @@ check_n_set_freq() {
 set_cpu_freq 1
 
 # allow charging
-echo 1 > /sys/class/power_supply/battery/charging_enabled
+set_charging_status 1
 
 PREVIOUS=$(cat /sys/class/power_supply/usb/present)
-
 timer=0
-
 power_off_at=0
 
+# calculate power_off_at value
 if [ $power_off_timer -gt "0" ]; then
   ((power_off_at=60*60*power_off_timer/sleep))
 fi
@@ -87,9 +98,9 @@ while [ 1 ]; do
     allow_charge=1
   fi
 
-  # set battery charging status
+  # set battery charging status only when it's different then previous.
   if [ $charging_status -ne $allow_charge ]; then
-    echo $allow_charge > /sys/class/power_supply/battery/charging_enabled
+    set_charging_status $allow_charge
   fi
 
   # current usb status
@@ -105,11 +116,11 @@ while [ 1 ]; do
     # if USB status changed, we update CPU frequency accordingly.
     if [ $CURRENT -ne $PREVIOUS ]; then
       set_cpu_freq $CURRENT
-      PREVIOUS=$(echo $CURRENT)
+      PREVIOUS=$CURRENT
     fi
   fi
 
-  # update timer based on current usb status
+  # update timer based on current usb status, reset it once it detect usb is online
   if [ $CURRENT -eq "0" ]; then
     ((timer=timer+1))
   else
