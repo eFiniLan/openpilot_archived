@@ -328,7 +328,7 @@ class CarInterface(object):
       events.append(create_event('pedalPressed', [ET.PRE_ENABLE]))
 
     # disable when brake is pressed and speed isn't zero
-    if (ret.brakePressed and (not self.brake_pressed_prev or ret.vEgo > 0.001)):
+    if ret.brakePressed and (not self.brake_pressed_prev or ret.vEgo > 0.001):
       events.append(create_event('pedalPressed', [ET.NO_ENTRY, ET.USER_DISABLE]))
 
     # if ret.gasPressed:
