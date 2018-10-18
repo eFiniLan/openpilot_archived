@@ -190,11 +190,16 @@ class CarState(object):
       # default mode
       self.pcm_acc_status = cp.vl["PCM_CRUISE"]['CRUISE_STATE']
       self.steer_override = abs(self.steer_torque_driver) > STEER_THRESHOLD
+
+      # we also set timer here, if suddenly change toggle we want to keep the pcm status
+      if self.pcm_acc_status > 0:
+        self.timer = 3
+      else:
+        self.timer = 0
     else:
       # auto op code
-      self.steer_override = abs(self.steer_torque_driver) > (STEER_THRESHOLD*0.5)
+      self.steer_override = abs(self.steer_torque_driver) > (STEER_THRESHOLD*0.8)
       self.counter_value = cp.vl["LEXUS_ISH_COUNTER"]['COUNTER']
-      self.cruise_status = cp.vl["PCM_CRUISE"]['CRUISE_STATE']
 
       # if driver steer or stand still, reset timer and disable OP
       if self.steer_override or self.standstill:
