@@ -92,6 +92,7 @@ class CarState(object):
     self.shifter_values = self.can_define.dv["GEAR_PACKET"]['GEAR']
     self.left_blinker_on = 0
     self.right_blinker_on = 0
+    self.pcm_acc_status = 0
 
     # initialize can parser
     self.car_fingerprint = CP.carFingerprint
@@ -162,14 +163,14 @@ class CarState(object):
     self.steer_torque_driver = cp.vl["STEER_TORQUE_SENSOR"]['STEER_TORQUE_DRIVER']
     self.steer_torque_motor = cp.vl["STEER_TORQUE_SENSOR"]['STEER_TORQUE_EPS']
     # we could use the override bit from dbc, but it's triggered at too high torque values
-    self.steer_override = abs(self.steer_torque_driver) > STEER_THRESHOLD
+    #self.steer_override = abs(self.steer_torque_driver) > STEER_THRESHOLD
 
     self.user_brake = 0
-    self.pcm_acc_status = cp.vl["PCM_CRUISE"]['CRUISE_STATE']
+    #self.pcm_acc_status = cp.vl["PCM_CRUISE"]['CRUISE_STATE']
     self.gas_pressed = not cp.vl["PCM_CRUISE"]['GAS_RELEASED']
     if self.CP.carFingerprint == CAR.LEXUS_ISH:
       self.v_cruise_pcm = cp.vl["PCM_CRUISE_LEXUS_ISH"]['SET_SPEED']
-      self.low_speed_lockout = 0
+      self.low_speed_lockout = False
     else:
       self.v_cruise_pcm = cp.vl["PCM_CRUISE_2"]['SET_SPEED']
       self.low_speed_lockout = cp.vl["PCM_CRUISE_2"]['LOW_SPEED_LOCKOUT'] == 2
@@ -178,3 +179,11 @@ class CarState(object):
       self.generic_toggle = cp.vl["AUTOPARK_STATUS"]['STATE'] != 0
     else:
       self.generic_toggle = bool(cp.vl["LIGHT_STALK"]['AUTO_HIGH_BEAM'])
+
+    # when toggle is off, we use default settings
+    # when toggle is on, we enable auto OP (steer), we reduce the steer_override threshold so it's easier to override
+    if self.generic_toggle == False:
+      self.pcm_acc_status = cp.vl["PCM_CRUISE"]['CRUISE_STATE']
+      self.steer_override = abs(self.steer_torque_driver) > STEER_THRESHOLD
+    else:
+      self.steer_override = abs(self.steer_torque_driver) > (STEER_THRESHOLD/2)

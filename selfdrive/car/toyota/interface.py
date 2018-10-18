@@ -159,9 +159,9 @@ class CarInterface(object):
     # to a negative value, so it won't matter.
     # hybrid models can't do stop and go even though the stock ACC can't
     if candidate in [CAR.PRIUS, CAR.RAV4H, CAR.LEXUS_RXH, CAR.CHR,
-                     CAR.CHRH, CAR.CAMRY, CAR.CAMRYH, CAR.HIGHLANDERH, CAR.HIGHLANDER]:
+                     CAR.CHRH, CAR.CAMRY, CAR.CAMRYH, CAR.HIGHLANDERH, CAR.HIGHLANDER, CAR.LEXUS_ISH]:
       ret.minEnableSpeed = -1.
-    elif candidate in [CAR.RAV4, CAR.COROLLA, CAR.LEXUS_ISH]: # TODO: hack ICE to do stop and go
+    elif candidate in [CAR.RAV4, CAR.COROLLA]: # TODO: hack ICE to do stop and go
       ret.minEnableSpeed = 19. * CV.MPH_TO_MS
 
     centerToRear = ret.wheelbase - ret.centerToFront
@@ -324,15 +324,9 @@ class CarInterface(object):
     elif not ret.cruiseState.enabled:
       events.append(create_event('pcmDisable', [ET.USER_DISABLE]))
 
-    if ret.leftBlinker or ret.rightBlinker:
-      events.append(create_event('pedalPressed', [ET.PRE_ENABLE]))
-
     # disable when brake is pressed and speed isn't zero
-    if ret.brakePressed and (not self.brake_pressed_prev or ret.vEgo > 0.001):
-      events.append(create_event('pedalPressed', [ET.NO_ENTRY, ET.USER_DISABLE]))
-
-    # if ret.gasPressed:
-    #   events.append(create_event('pedalPressed', [ET.PRE_ENABLE]))
+    # if ret.brakePressed and (not self.brake_pressed_prev or ret.vEgo > 0.001):
+    #   events.append(create_event('pedalPressed', [ET.NO_ENTRY, ET.USER_DISABLE]))
 
     ret.events = events
     ret.canMonoTimes = canMonoTimes

@@ -105,6 +105,7 @@ class CarController(object):
     self.last_standstill = False
     self.standstill_req = False
     self.angle_control = False
+    self.auto_control_timer = 0
 
     self.steer_angle_enabled = False
     self.ipas_reset_counter = 0
@@ -120,6 +121,16 @@ class CarController(object):
              pcm_cancel_cmd, hud_alert, audible_alert):
 
     # *** compute control surfaces ***
+    if CS.generic_toggle:
+      if CS.steer_override or CS.standstill:
+        self.auto_control_timer = 0
+        CS.pcm_acc_status = 0
+      else:
+        if frame % 100 == 0:
+          self.auto_control_timer += 1
+
+      if self.auto_control_timer >= 3:
+        CS.pcm_acc_status = 1
 
     # gas and brake
     apply_accel = actuators.gas - actuators.brake

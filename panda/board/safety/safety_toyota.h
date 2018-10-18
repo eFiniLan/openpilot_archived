@@ -48,18 +48,30 @@ static void toyota_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
     update_sample(&toyota_torque_meas, torque_meas_new);
   }
 
-  // enter controls on rising edge of ACC, exit controls on ACC off
-  if ((to_push->RIR>>21) == 0x1D2) {
-    // toyota: 4 bits: 55-52
-    int cruise_engaged = is_lexus_ish == 1? to_push->RDLR & 0x2000 : to_push->RDHR & 0xF00000;
-    if (cruise_engaged && !toyota_cruise_engaged_last) {
-      controls_allowed = 1;
-    } else if (!cruise_engaged) {
-      controls_allowed = 0;
+  // use MAIN_ON to set controls_allowed or not
+  if (is_lexus_ish == 1) {
+    if ((to_push->RIR>>21) == 0x3F1) {
+      int cruise_engaged = to_push->RDLR & 0x2000;
+      if (cruise_engaged && !toyota_cruise_engaged_last) {
+        controls_allowed = 1;
+      } else if (!cruise_engaged) {
+        controls_allowed = 0;
+      }
+      toyota_cruise_engaged_last = cruise_engaged;
     }
-    toyota_cruise_engaged_last = cruise_engaged;
+  } else {
+    // enter controls on rising edge of ACC, exit controls on ACC off
+    if ((to_push->RIR>>21) == 0x1D2) {
+      // toyota: 4 bits: 55-52
+      int cruise_engaged = is_lexus_ish == 1? to_push->RDLR & 0x2000 : to_push->RDHR & 0xF00000;
+      if (cruise_engaged && !toyota_cruise_engaged_last) {
+        controls_allowed = 1;
+      } else if (!cruise_engaged) {
+        controls_allowed = 0;
+      }
+      toyota_cruise_engaged_last = cruise_engaged;
+    }
   }
-
   int bus = (to_push->RDTR >> 4) & 0xF;
   // 0x680 is a radar msg only found in dsu-less cars
   if ((to_push->RIR>>21) == 0x680 && (bus == 1)) {
