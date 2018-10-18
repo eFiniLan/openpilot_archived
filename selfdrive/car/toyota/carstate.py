@@ -59,6 +59,7 @@ def get_can_parser(CP):
     signals += [
       ("MAIN_ON", "PCM_CRUISE_LEXUS_ISH", 0),
       ("SET_SPEED", "PCM_CRUISE_LEXUS_ISH", 0),
+      ("COUNTER", "LEXUS_ISH_COUNTER", 0),
     ]
     checks = [
       ("BRAKE_MODULE", 50),
@@ -69,6 +70,7 @@ def get_can_parser(CP):
       ("STEER_TORQUE_SENSOR", 50),
       ("EPS_STATUS", 25),
       ("PCM_CRUISE_LEXUS_ISH", 1),
+      ("LEXUS_ISH_COUNTER", 1),
     ]
   else:
     signals += [
@@ -92,7 +94,9 @@ class CarState(object):
     self.shifter_values = self.can_define.dv["GEAR_PACKET"]['GEAR']
     self.left_blinker_on = 0
     self.right_blinker_on = 0
-    self.pcm_acc_status = 0
+    self.last_counter_value = 0
+    self.counter_value = 0
+    self.timer = 0
 
     # initialize can parser
     self.car_fingerprint = CP.carFingerprint
@@ -183,7 +187,25 @@ class CarState(object):
     # when toggle is off, we use default settings
     # when toggle is on, we enable auto OP (steer), we reduce the steer_override threshold so it's easier to override
     if self.generic_toggle == False:
+      # default mode
       self.pcm_acc_status = cp.vl["PCM_CRUISE"]['CRUISE_STATE']
       self.steer_override = abs(self.steer_torque_driver) > STEER_THRESHOLD
     else:
-      self.steer_override = abs(self.steer_torque_driver) > (STEER_THRESHOLD/2)
+      # auto op code
+      self.steer_override = abs(self.steer_torque_driver) > (STEER_THRESHOLD*0.5)
+      self.counter_value = cp.vl["LEXUS_ISH_COUNTER"]['COUNTER']
+      self.cruise_status = cp.vl["PCM_CRUISE"]['CRUISE_STATE']
+
+      # if driver steer or stand still, reset timer and disable OP
+      if self.steer_override or self.standstill:
+        self.timer = 0
+        self.pcm_acc_status = 0
+
+      # enable OP when timer is >= 3 seconds without driver input and acc status is 0
+      if self.timer >= 3 and self.pcm_acc_status == 0:
+        self.pcm_acc_status = 1
+
+      # if lexus counter value changes, we increase the timer (counter update every second)
+      if self.counter_value != self.last_counter_value:
+        self.timer += 1
+        self.last_counter_value = self.counter_value
