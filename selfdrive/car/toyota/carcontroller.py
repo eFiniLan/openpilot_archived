@@ -47,7 +47,7 @@ def accel_hysteresis(accel, accel_steady, enabled):
   return accel, accel_steady
 
 
-def process_hud_alert(hud_alert, audible_alert):
+def process_hud_alert(hud_alert, audible_alert, is_auto_op = False):
   # initialize to no alert
   steer = 0
   fcw = 0
@@ -62,8 +62,11 @@ def process_hud_alert(hud_alert, audible_alert):
   if audible_alert == 'chimeRepeated':
     sound1 = 1
   elif audible_alert in ['beepSingle', 'chimeSingle', 'chimeDouble']:
-    # TODO: find a way to send single chimes
-    sound2 = 1
+    if (is_auto_op == True and audible_alert == 'beepSingle'):
+      sound2 = 0
+    else:
+      # TODO: find a way to send single chimes
+      sound2 = 1
 
   return steer, fcw, sound1, sound2
 
@@ -219,7 +222,7 @@ class CarController(object):
     # ui mesg is at 100Hz but we send asap if:
     # - there is something to display
     # - there is something to stop displaying
-    alert_out = process_hud_alert(hud_alert, audible_alert)
+    alert_out = process_hud_alert(hud_alert, audible_alert, CS.generic_toggle)
     steer, fcw, sound1, sound2 = alert_out
 
     if (any(alert_out) and not self.alert_active) or \
