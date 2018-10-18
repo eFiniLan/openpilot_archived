@@ -70,7 +70,6 @@ def get_can_parser(CP):
       ("STEER_TORQUE_SENSOR", 50),
       ("EPS_STATUS", 25),
       ("PCM_CRUISE_LEXUS_ISH", 1),
-      ("LEXUS_ISH_COUNTER", 1),
     ]
   else:
     signals += [
