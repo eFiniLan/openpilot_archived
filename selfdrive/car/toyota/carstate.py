@@ -93,9 +93,6 @@ class CarState(object):
     self.shifter_values = self.can_define.dv["GEAR_PACKET"]['GEAR']
     self.left_blinker_on = 0
     self.right_blinker_on = 0
-    self.last_counter_value = 0
-    self.counter_value = 0
-    self.timer = 0
     self.cruise_status = 0
 
     # initialize can parser
@@ -191,39 +188,19 @@ class CarState(object):
       self.pcm_acc_status = cp.vl["PCM_CRUISE"]['CRUISE_STATE']
       self.steer_override = abs(self.steer_torque_driver) > STEER_THRESHOLD
 
-      # we also set timer here, if suddenly change toggle we want to keep the pcm status
-      if self.pcm_acc_status > 0:
-        self.timer = 3
-      else:
-        self.timer = 0
     else:
       # auto op code
-      self.last_counter_value = self.counter_value
       self.counter_value = cp.vl["LEXUS_ISH_COUNTER"]['COUNTER']
       self.cruise_status = cp.vl["PCM_CRUISE"]['CRUISE_STATE']
 
       # acc is enabled
       if self.cruise_status > 0:
         self.steer_override = abs(self.steer_torque_driver) > STEER_THRESHOLD
-        self.timer = 3
-        if self.pcm_acc_status == 0:
-          self.pcm_acc_status = 1
       # acc is disabled
       else:
         self.steer_override = abs(self.steer_torque_driver) > (STEER_THRESHOLD*0.5)
         # if stand still, reset timer and disable OP
         if self.standstill:
-          self.timer = 0
           self.pcm_acc_status = 0
-
-        # enable OP when timer is >= 3 seconds without driver input and acc status is 0
-        if self.timer >= 3 and self.pcm_acc_status == 0:
+        else:
           self.pcm_acc_status = 1
-
-        if self.cruise_status > 0 and self.pcm_acc_status == 0:
-          self.timer = 3
-          self.pcm_acc_status = 1
-
-        # if lexus counter value changes, we increase the timer (counter update every second)
-        if self.counter_value != self.last_counter_value:
-          self.timer += 1
