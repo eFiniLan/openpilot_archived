@@ -96,6 +96,7 @@ class CarState(object):
     self.last_counter_value = 0
     self.counter_value = 0
     self.timer = 0
+    self.cruise_status = 0
 
     # initialize can parser
     self.car_fingerprint = CP.carFingerprint
@@ -197,24 +198,32 @@ class CarState(object):
         self.timer = 0
     else:
       # auto op code
-      self.steer_override = abs(self.steer_torque_driver) > (STEER_THRESHOLD*0.8)
+      self.last_counter_value = self.counter_value
       self.counter_value = cp.vl["LEXUS_ISH_COUNTER"]['COUNTER']
       self.cruise_status = cp.vl["PCM_CRUISE"]['CRUISE_STATE']
 
-      # if driver steer or stand still, reset timer and disable OP
-      if self.standstill:
-        self.timer = 0
-        self.pcm_acc_status = 0
-
-      # enable OP when timer is >= 3 seconds without driver input and acc status is 0
-      if self.timer >= 3 and self.pcm_acc_status == 0:
-        self.pcm_acc_status = 1
-
-      if self.cruise_status > 0 and self.pcm_acc_status == 0:
+      # acc is enabled
+      if self.cruise_status > 0:
+        self.steer_override = abs(self.steer_torque_driver) > STEER_THRESHOLD
         self.timer = 3
-        self.pcm_acc_status = 1
+        if self.pcm_acc_status == 0:
+          self.pcm_acc_status = 1
+      # acc is disabled
+      else:
+        self.steer_override = abs(self.steer_torque_driver) > (STEER_THRESHOLD*0.5)
+        # if stand still, reset timer and disable OP
+        if self.standstill:
+          self.timer = 0
+          self.pcm_acc_status = 0
 
-      # if lexus counter value changes, we increase the timer (counter update every second)
-      if self.counter_value != self.last_counter_value:
-        self.timer += 1
-        self.last_counter_value = self.counter_value
+        # enable OP when timer is >= 3 seconds without driver input and acc status is 0
+        if self.timer >= 3 and self.pcm_acc_status == 0:
+          self.pcm_acc_status = 1
+
+        if self.cruise_status > 0 and self.pcm_acc_status == 0:
+          self.timer = 3
+          self.pcm_acc_status = 1
+
+        # if lexus counter value changes, we increase the timer (counter update every second)
+        if self.counter_value != self.last_counter_value:
+          self.timer += 1
