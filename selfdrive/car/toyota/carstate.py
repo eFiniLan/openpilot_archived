@@ -70,7 +70,6 @@ def get_can_parser(CP):
       ("STEER_TORQUE_SENSOR", 50),
       ("EPS_STATUS", 25),
       ("PCM_CRUISE_LEXUS_ISH", 1),
-      ("LEXUS_ISH_COUNTER", 1),
     ]
   else:
     signals += [
@@ -200,14 +199,19 @@ class CarState(object):
       # auto op code
       self.steer_override = abs(self.steer_torque_driver) > (STEER_THRESHOLD*0.8)
       self.counter_value = cp.vl["LEXUS_ISH_COUNTER"]['COUNTER']
+      self.cruise_status = cp.vl["PCM_CRUISE"]['CRUISE_STATE']
 
       # if driver steer or stand still, reset timer and disable OP
-      if self.steer_override or self.standstill:
+      if self.standstill:
         self.timer = 0
         self.pcm_acc_status = 0
 
       # enable OP when timer is >= 3 seconds without driver input and acc status is 0
       if self.timer >= 3 and self.pcm_acc_status == 0:
+        self.pcm_acc_status = 1
+
+      if self.cruise_status > 0 and self.pcm_acc_status == 0:
+        self.timer = 3
         self.pcm_acc_status = 1
 
       # if lexus counter value changes, we increase the timer (counter update every second)
