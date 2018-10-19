@@ -190,17 +190,19 @@ class CarState(object):
 
     else:
       # auto op code
-      self.counter_value = cp.vl["LEXUS_ISH_COUNTER"]['COUNTER']
       self.cruise_status = cp.vl["PCM_CRUISE"]['CRUISE_STATE']
 
       # acc is enabled
       if self.cruise_status > 0:
         self.steer_override = abs(self.steer_torque_driver) > STEER_THRESHOLD
+        if self.pcm_acc_status == 0:
+          self.pcm_acc_status = 1
       # acc is disabled
       else:
         self.steer_override = abs(self.steer_torque_driver) > (STEER_THRESHOLD*0.5)
         # if stand still, reset timer and disable OP
-        if self.standstill:
+        if self.standstill and self.pcm_acc_status == 1:
           self.pcm_acc_status = 0
         else:
-          self.pcm_acc_status = 1
+          if self.pcm_acc_status == 0:
+            self.pcm_acc_status = 1
