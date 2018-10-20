@@ -201,8 +201,9 @@ class CarState(object):
       else:
         self.steer_override = abs(self.steer_torque_driver) > (STEER_THRESHOLD*0.5)
         # if stand still, reset timer and disable OP
-        if self.standstill and self.pcm_acc_status == 1:
-          self.pcm_acc_status = 0
+        if self.standstill:
+          if self.pcm_acc_status == 1:
+            self.pcm_acc_status = 0
         else:
           if self.pcm_acc_status == 0:
-            self.pcm_acc_status = 1
+          self.pcm_acc_status = 1
