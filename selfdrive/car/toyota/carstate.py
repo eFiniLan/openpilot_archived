@@ -206,4 +206,4 @@ class CarState(object):
             self.pcm_acc_status = 0
         else:
           if self.pcm_acc_status == 0:
-          self.pcm_acc_status = 1
+            self.pcm_acc_status = 1
