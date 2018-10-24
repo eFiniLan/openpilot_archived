@@ -164,7 +164,7 @@ class CarState(object):
     self.steer_torque_driver = cp.vl["STEER_TORQUE_SENSOR"]['STEER_TORQUE_DRIVER']
     self.steer_torque_motor = cp.vl["STEER_TORQUE_SENSOR"]['STEER_TORQUE_EPS']
     # we could use the override bit from dbc, but it's triggered at too high torque values
-    #self.steer_override = abs(self.steer_torque_driver) > STEER_THRESHOLD
+    self.steer_override = abs(self.steer_torque_driver) > STEER_THRESHOLD
 
     self.user_brake = 0
     #self.pcm_acc_status = cp.vl["PCM_CRUISE"]['CRUISE_STATE']
@@ -189,21 +189,15 @@ class CarState(object):
       self.steer_override = abs(self.steer_torque_driver) > STEER_THRESHOLD
 
     else:
-      # auto op code
+      # ALWAYS ON OP code
       self.cruise_status = cp.vl["PCM_CRUISE"]['CRUISE_STATE']
 
       # acc is enabled
       if self.cruise_status > 0:
-        self.steer_override = abs(self.steer_torque_driver) > STEER_THRESHOLD
         if self.pcm_acc_status == 0:
           self.pcm_acc_status = 1
       # acc is disabled
       else:
-        self.steer_override = abs(self.steer_torque_driver) > (STEER_THRESHOLD*0.5)
         # if stand still, reset timer and disable OP
-        if self.standstill:
-          if self.pcm_acc_status == 1:
-            self.pcm_acc_status = 0
-        else:
-          if self.pcm_acc_status == 0:
-            self.pcm_acc_status = 1
+        if not self.standstill and self.pcm_acc_status == 0:
+          self.pcm_acc_status = 1
