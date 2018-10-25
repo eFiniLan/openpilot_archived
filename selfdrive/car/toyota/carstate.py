@@ -198,6 +198,9 @@ class CarState(object):
           self.pcm_acc_status = 1
       # acc is disabled
       else:
-        # if stand still, reset timer and disable OP
-        if not self.standstill and self.pcm_acc_status == 0:
-          self.pcm_acc_status = 1
+        if self.standstill:
+          if self.pcm_acc_status == 1:
+            self.pcm_acc_status = 0
+        else:
+          if self.pcm_acc_status == 0:
+            self.pcm_acc_status = 1
