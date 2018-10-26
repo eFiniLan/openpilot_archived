@@ -58,7 +58,6 @@ def get_can_parser(CP):
   ]
 
   if CP.carFingerprint == CAR.LEXUS_ISH:
-
     checks = [
       ("BRAKE_MODULE", 50),
       ("GAS_PEDAL", 50),
@@ -154,6 +153,7 @@ class CarState(object):
     else:
       self.ipas_active = cp.vl['EPS_STATUS']['IPAS_STATE'] == 3
     self.brake_error = 0
+    self.v_cruise_pcm = cp.vl["PCM_CRUISE_2"]['SET_SPEED']
     self.steer_torque_driver = cp.vl["STEER_TORQUE_SENSOR"]['STEER_TORQUE_DRIVER']
     self.steer_torque_motor = cp.vl["STEER_TORQUE_SENSOR"]['STEER_TORQUE_EPS']
     # we could use the override bit from dbc, but it's triggered at too high torque values
