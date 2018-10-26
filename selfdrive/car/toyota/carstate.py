@@ -142,7 +142,7 @@ class CarState(object):
     self.angle_steers_rate = cp.vl["STEER_ANGLE_SENSOR"]['STEER_RATE']
     can_gear = int(cp.vl["GEAR_PACKET"]['GEAR'])
     self.gear_shifter = parse_gear_shifter(can_gear, self.shifter_values)
-      self.main_on = cp.vl["PCM_CRUISE_2"]['MAIN_ON']
+    self.main_on = cp.vl["PCM_CRUISE_2"]['MAIN_ON']
     self.left_blinker_on = cp.vl["STEERING_LEVERS"]['TURN_SIGNALS'] == 1
     self.right_blinker_on = cp.vl["STEERING_LEVERS"]['TURN_SIGNALS'] == 2
 
