@@ -6,7 +6,7 @@ from selfdrive.car.toyota.toyotacan import make_can_msg, create_video_target,\
                                            create_fcw_command, create_ish_accel_command
 from selfdrive.car.toyota.values import ECU, STATIC_MSGS, NO_DSU_CAR
 from selfdrive.can.packer import CANPacker
-
+import math
 # Accel limits
 ACCEL_HYST_GAP = 0.02  # don't change accel command for small oscilalitons within this value
 ACCEL_MAX = 1.5  # 1.5 m/s2
@@ -214,11 +214,12 @@ class CarController(object):
     #     can_sends.append(create_accel_command(self.packer, apply_accel, pcm_cancel_cmd, self.standstill_req))
     #   else:
     #     can_sends.append(create_accel_command(self.packer, 0, pcm_cancel_cmd, False))
-    if (ECU.DSU in self.fake_ecus) or (pcm_cancel_cmd and ECU.CAM in self.fake_ecus):
+    if (frame % 3 == 0 and ECU.DSU in self.fake_ecus) or (pcm_cancel_cmd and ECU.CAM in self.fake_ecus):
+      count = math.ceil(frame / 3)
       if ECU.DSU in self.fake_ecus:
-        can_sends.append(create_ish_accel_command(self.packer, apply_accel, pcm_cancel_cmd, frame))
+        can_sends.append(create_ish_accel_command(self.packer, apply_accel, pcm_cancel_cmd, count))
       else:
-        can_sends.append(create_ish_accel_command(self.packer, 0, pcm_cancel_cmd, frame))
+        can_sends.append(create_ish_accel_command(self.packer, 0, pcm_cancel_cmd, count))
 
 
     if frame % 10 == 0 and ECU.CAM in self.fake_ecus and self.car_fingerprint not in NO_DSU_CAR:
