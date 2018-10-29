@@ -165,13 +165,14 @@ BO_ 956 GEAR_PACKET: 8 XXX
  SG_ GEAR : 13|6@0+ (1,0) [0|63] "" XXX
 
 BO_ 835 LEXUS_ISH_ACC_CONTROL: 7 DS1
- SG_ COUNTER : 7|8@0+ (1,0) [0|127] "" Vector__XXX
- SG_ SET_ME_X00 : 15|8@0+ (1,0) [0|255] "" XXX
- SG_ ACCEL_CMD : 23|16@0- (2,0) [0|0] "N" Vector__XXX
+ SG_ COUNTER : 6|7@0+ (1,0) [0|127] "" XXX
+ SG_ SET_ME_X00_0 : 7|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ SET_ME_X00_1 : 15|8@0+ (1,0) [0|255] "" XXX
+ SG_ ACCEL_CMD : 23|16@0- (0.001,0) [-20|20] "m/s2" Vector__XXX
  SG_ CANCEL_REQ : 39|8@0+ (1,0) [0|255] "" XXX
  SG_ SET_ME_X00_2 : 47|8@0+ (1,0) [0|255] "" XXX
  SG_ CHECKSUM : 55|8@0+ (1,0) [0|0] "" FCM
- 
+
 BO_ 1009 PCM_CRUISE_2: 8 XXX
  SG_ MAIN_ON : 13|1@0+ (1,0) [0|3] "" XXX
  SG_ CRUISE_STATE : 10|1@0+ (1,0) [0|1] "" XXX
