@@ -182,6 +182,8 @@ class CarState(object):
     else:
       # ALWAYS ON OP code
       self.cruise_status = cp.vl["PCM_CRUISE"]['CRUISE_STATE']
+      if self.v_cruise_pcm == 0:
+        self.v_cruise_pcm = 60
 
       # acc is enabled
       if self.cruise_status > 0:
