@@ -1004,15 +1004,9 @@ static void ui_draw_vision_header(UIState *s) {
   nvgRect(s->vg, ui_viz_rx, box_y, ui_viz_rw, header_h);
   nvgFill(s->vg);
 
-  bool hasSidebar = !s->scene.uilayout_sidebarcollapsed;
-  bool is_engaged = (s->status == STATUS_ENGAGED);
-  if (!is_engaged || (hasSidebar && is_engaged)) {
-    ui_draw_vision_speed(s);
-  }
-  if (hasSidebar && is_engaged) {
-    ui_draw_vision_maxspeed(s);
-    ui_draw_vision_wheel(s);
-  }
+  ui_draw_vision_speed(s);
+  ui_draw_vision_maxspeed(s);
+  ui_draw_vision_wheel(s);
 }
 
 static void ui_draw_vision_footer(UIState *s) {
@@ -1024,11 +1018,7 @@ static void ui_draw_vision_footer(UIState *s) {
   nvgRect(s->vg, ui_viz_rx, footer_y, ui_viz_rw, footer_h);
 
   // Driver Monitoring
-  bool hasSidebar = !s->scene.uilayout_sidebarcollapsed;
-  bool is_engaged = (s->status == STATUS_ENGAGED);
-  if (hasSidebar && is_engaged) {
-    ui_draw_vision_face(s);
-  }
+  ui_draw_vision_face(s);
 }
 
 static void ui_draw_vision_alert(UIState *s, int va_size, int va_color,
