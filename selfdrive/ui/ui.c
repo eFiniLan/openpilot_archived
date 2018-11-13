@@ -990,6 +990,60 @@ static void ui_draw_vision_face(UIState *s) {
   nvgFill(s->vg);
 }
 
+
+static void ui_draw_cruise_btn(UIState *s) {
+  const UIScene *scene = &s->scene;
+  int ui_viz_rx = scene->ui_viz_rx;
+  int ui_viz_rw = scene->ui_viz_rw;
+  float maxspeed = s->scene.v_cruise;
+
+  const int face_size = 96 + bdr_s;
+  const int btn_size = 128;
+  const int viz_maxspeed_x = (scene->ui_viz_rx + face_size + btn_size + (bdr_s * 2));
+  const int viz_maxspeed_y = (footer_y + ((footer_h - face_size) / 2));
+  const int viz_maxspeed_w = 128;
+  const int viz_maxspeed_h = 128;
+
+  nvgBeginPath(s->vg);
+  nvgRoundedRect(s->vg, viz_maxspeed_x, viz_maxspeed_y, viz_maxspeed_w, viz_maxspeed_h, 20);
+  nvgStrokeColor(s->vg, nvgRGBA(255,255,255,80));
+  nvgStrokeWidth(s->vg, 6);
+  nvgStroke(s->vg);
+
+  // +
+  nvgTextAlign(s->vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+  nvgFontFace(s->vg, "sans-bold");
+  nvgFontSize(s->vg, 256);
+  nvgFillColor(s->vg, nvgRGBA(255, 255, 255, 200));
+  nvgText(s->vg, viz_maxspeed_x+viz_maxspeed_w/2, viz_maxspeed_y + 128/2, "+", NULL);
+
+  // set
+  nvgBeginPath(s->vg);
+  nvgRoundedRect(s->vg, viz_maxspeed_x + 128 + 48, viz_maxspeed_y, viz_maxspeed_w, viz_maxspeed_h, 20);
+  nvgStrokeColor(s->vg, nvgRGBA(255,255,255,80));
+  nvgStrokeWidth(s->vg, 6);
+  nvgStroke(s->vg);
+
+  nvgTextAlign(s->vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+  nvgFontFace(s->vg, "sans-bold");
+  nvgFontSize(s->vg, 96);
+  nvgFillColor(s->vg, nvgRGBA(255, 255, 255, 200));
+  nvgText(s->vg, viz_maxspeed_x+viz_maxspeed_w/2  + 128 + 48, viz_maxspeed_y + 128/2, "SET", NULL);
+
+  // -
+  nvgBeginPath(s->vg);
+  nvgRoundedRect(s->vg, viz_maxspeed_x + 128 + 48 + 128 + 48, viz_maxspeed_y, viz_maxspeed_w, viz_maxspeed_h, 20);
+  nvgStrokeColor(s->vg, nvgRGBA(255,255,255,80));
+  nvgStrokeWidth(s->vg, 6);
+  nvgStroke(s->vg);
+
+  nvgTextAlign(s->vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+  nvgFontFace(s->vg, "sans-bold");
+  nvgFontSize(s->vg, 256);
+  nvgFillColor(s->vg, nvgRGBA(255, 255, 255, 200));
+  nvgText(s->vg, viz_maxspeed_x+viz_maxspeed_w/2  + 128 + 48 + 128 + 48, viz_maxspeed_y + 128/2, "-", NULL);
+}
+
 static void ui_draw_vision_header(UIState *s) {
   const UIScene *scene = &s->scene;
   int ui_viz_rx = scene->ui_viz_rx;
@@ -1004,15 +1058,9 @@ static void ui_draw_vision_header(UIState *s) {
   nvgRect(s->vg, ui_viz_rx, box_y, ui_viz_rw, header_h);
   nvgFill(s->vg);
 
-  bool hasSidebar = !s->scene.uilayout_sidebarcollapsed;
-  bool is_engaged = (s->status == STATUS_ENGAGED);
-  if (!is_engaged || (hasSidebar && is_engaged)) {
-    ui_draw_vision_speed(s);
-  }
-  if (hasSidebar && is_engaged) {
-    ui_draw_vision_maxspeed(s);
-    ui_draw_vision_wheel(s);
-  }
+  ui_draw_vision_speed(s);
+  ui_draw_vision_maxspeed(s);
+  ui_draw_vision_wheel(s);
 }
 
 static void ui_draw_vision_footer(UIState *s) {
@@ -1024,11 +1072,9 @@ static void ui_draw_vision_footer(UIState *s) {
   nvgRect(s->vg, ui_viz_rx, footer_y, ui_viz_rw, footer_h);
 
   // Driver Monitoring
-  bool hasSidebar = !s->scene.uilayout_sidebarcollapsed;
-  bool is_engaged = (s->status == STATUS_ENGAGED);
-  if (hasSidebar && is_engaged) {
-    ui_draw_vision_face(s);
-  }
+  ui_draw_vision_face(s);
+  // Cruise button
+  ui_draw_cruise_btn(s);
 }
 
 static void ui_draw_vision_alert(UIState *s, int va_size, int va_color,
