@@ -130,6 +130,8 @@ void soft_cruise(UIState *s, int touch_x, int touch_y) {
   if (is_init == false) {
     init();
   }
-  ui_draw_soft_cruise_btn(s);
-  on_btn_touched(s, touch_x, touch_y);
+  if (s->vision_connected && s->plus_state == 0) {
+    ui_draw_soft_cruise_btn(s);
+    on_btn_touched(s, touch_x, touch_y);
+  }
 }
