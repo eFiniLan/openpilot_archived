@@ -181,27 +181,21 @@ class CarState(object):
       os.system("echo 0 > /tmp/cruise_state")
     else:
       # ALWAYS ON OP code
-      # self.cruise_status = cp.vl["PCM_CRUISE"]['CRUISE_STATE']
-
+      self.cruise_status = cp.vl["PCM_CRUISE"]['CRUISE_STATE']
       with open("/tmp/cruise_state") as f:
         self.pcm_acc_status = int(f.read())
 
-      # if self.standstill:
-      #   os.system("echo 0 > /tmp/cruise_state")
-      #   self.pcm_acc_status = 0
-
-      # # acc is enabled
-      # if self.cruise_status > 0:
-      #   if self.pcm_acc_status == 0:
-      #     os.system("echo 1 > /tmp/cruise_state")
-      #     self.pcm_acc_status = 1
+      # acc is enabled
+      if self.cruise_status > 0:
+        if self.pcm_acc_status == 0:
+          self.pcm_acc_status = 1
+          os.system("echo %d > /tmp/cruise_state" % self.pcm_acc_status)
       # acc is disabled
-      # else:
-        # if self.standstill:
-        #   if self.pcm_acc_status == 1:
-        #     os.system("echo 0 > /tmp/cruise_state")
-        #     self.pcm_acc_status = 0
-        # else:
-        #   if self.pcm_acc_status == 0:
-        #     os.system("echo 1 > /tmp/cruise_state")
-        #     self.pcm_acc_status = 1
+      else:
+        if self.standstill:
+          if self.pcm_acc_status == 1:
+            self.pcm_acc_status = 0
+        else:
+          if self.pcm_acc_status == 0:
+            self.pcm_acc_status = 1
+        os.system("echo %d > /tmp/cruise_state" % self.pcm_acc_status)
