@@ -177,6 +177,7 @@ class CarState(object):
     if not self.generic_toggle:
       # default mode
       self.pcm_acc_status = cp.vl["PCM_CRUISE"]['CRUISE_STATE']
+      os.system("echo 0 > /tmp/cruise_state")
     else:
       # ALWAYS ON OP code
       # self.cruise_status = cp.vl["PCM_CRUISE"]['CRUISE_STATE']
@@ -184,9 +185,9 @@ class CarState(object):
       with open("/tmp/cruise_state") as f:
         self.pcm_acc_status = int(f.read())
 
-      if self.standstill:
-        os.system("echo 0 > /tmp/cruise_state")
-        self.pcm_acc_status = 0
+      # if self.standstill:
+      #   os.system("echo 0 > /tmp/cruise_state")
+      #   self.pcm_acc_status = 0
 
       # # acc is enabled
       # if self.cruise_status > 0:
