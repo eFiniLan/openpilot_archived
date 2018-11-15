@@ -175,7 +175,7 @@ class CarController(object):
     if not enabled and CS.pcm_acc_status:
       # send pcm acc cancel cmd if drive is disabled but pcm is still on, or if the system can't be activated
       pcm_cancel_cmd = 1
-      os.system("echo 0 > /tmp/cruise_state")
+      # os.system("echo 0 > /tmp/cruise_state")
 
     # on entering standstill, send standstill request
     if CS.standstill and not self.last_standstill:
