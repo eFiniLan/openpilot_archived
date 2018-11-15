@@ -10,6 +10,29 @@ bool is_init = false;
 int cruise_speed = 0;
 
 /**
+ * Write cruise state to a tmp file so it's accessible everywhere
+ */
+static void set_cruise_state(int val) {
+  char cmd[100];
+  sprintf(cmd, "echo %d > /tmp/cruise_state", val);
+  system(cmd);
+}
+
+/**
+ * Read cruise state from the tmp file because the state can be changed outside
+ */
+static int get_cruise_state() {
+    int fd = open("/tmp/cruise_state", O_RDONLY);
+    if (fd < 0) {
+      set_cruise_state(0);
+      return 0;
+    }
+    char buffer[1];
+    read(fd, buffer, 1);
+    return atoi(buffer);
+}
+
+/**
  * Draw buttons to the UI
  */
 static void ui_draw_soft_cruise_btn(UIState *s) {
@@ -33,55 +56,49 @@ static void ui_draw_soft_cruise_btn(UIState *s) {
   const int btn_txt_x = btn_x + btn_txt_offset;
   const int btn_set_txt_y = btn_set_y + btn_txt_offset;
   const int btn_res_txt_y = btn_res_y + btn_txt_offset;
+  const int cruise_state = get_cruise_state();
 
   // SET/-
   nvgBeginPath(s->vg);
   nvgRoundedRect(s->vg, btn_x, btn_set_y, btn_size, btn_size, 20);
-  nvgStrokeColor(s->vg, nvgRGBA(255,255,255,80));
+  if (cruise_state == 1) {
+    nvgStrokeColor(s->vg, nvgRGBA(23, 134, 68, 80));
+  } else {
+    nvgStrokeColor(s->vg, nvgRGBA(255, 255, 255, 80));
+  }
   nvgStrokeWidth(s->vg, 6);
   nvgStroke(s->vg);
 
   nvgTextAlign(s->vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
   nvgFontFace(s->vg, "sans-bold");
   nvgFontSize(s->vg, 72);
-  nvgFillColor(s->vg, nvgRGBA(255, 255, 255, 200));
+  if (cruise_state == 1) {
+    nvgFillColor(s->vg, nvgRGBA(23, 134, 68, 200));
+  } else {
+    nvgFillColor(s->vg, nvgRGBA(255, 255, 255, 200));
+  }
   nvgText(s->vg, btn_txt_x, btn_set_txt_y, "SET/-", NULL);
 
   // RES/+
   nvgBeginPath(s->vg);
   nvgRoundedRect(s->vg, btn_x, btn_res_y, btn_size, btn_size, 20);
-  nvgStrokeColor(s->vg, nvgRGBA(255,255,255,80));
+  if (cruise_state == 1) {
+    nvgStrokeColor(s->vg, nvgRGBA(23, 134, 68, 80));
+  } else {
+    nvgStrokeColor(s->vg, nvgRGBA(255, 255, 255, 80));
+  }
   nvgStrokeWidth(s->vg, 6);
   nvgStroke(s->vg);
 
   nvgTextAlign(s->vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
   nvgFontFace(s->vg, "sans-bold");
   nvgFontSize(s->vg, 72);
-  nvgFillColor(s->vg, nvgRGBA(255, 255, 255, 200));
+  if (cruise_state == 1) {
+    nvgFillColor(s->vg, nvgRGBA(23, 134, 68, 200));
+  } else {
+    nvgFillColor(s->vg, nvgRGBA(255, 255, 255, 200));
+  }
   nvgText(s->vg, btn_txt_x, btn_res_txt_y, "RES/+", NULL);
-}
-
-/**
- * Write cruise state to a tmp file so it's accessible everywhere
- */
-static void set_cruise_state(int val) {
-  char cmd[100];
-  sprintf(cmd, "echo %d > /tmp/cruise_state", val);
-  system(cmd);
-}
-
-/**
- * Read cruise state from the tmp file because the state can be changed outside
- */
-static int get_cruise_state() {
-    int fd = open("/tmp/cruise_state", O_RDONLY);
-    if (fd < 0) {
-      set_cruise_state(0);
-      return 0;
-    }
-    char buffer[1];
-    read(fd, buffer, 1);
-    return atoi(buffer);
 }
 
 /**
