@@ -174,26 +174,32 @@ class CarState(object):
 
     # when toggle is off, we use default settings
     # when toggle is on, we enable auto OP (steer), we reduce the steer_override threshold so it's easier to override
-    if self.generic_toggle == False:
+    if not self.generic_toggle:
       # default mode
       self.pcm_acc_status = cp.vl["PCM_CRUISE"]['CRUISE_STATE']
-      self.steer_override = abs(self.steer_torque_driver) > STEER_THRESHOLD
-
     else:
       # ALWAYS ON OP code
-      self.cruise_status = cp.vl["PCM_CRUISE"]['CRUISE_STATE']
-      if self.v_cruise_pcm == 0:
-        self.v_cruise_pcm = 60
+      # self.cruise_status = cp.vl["PCM_CRUISE"]['CRUISE_STATE']
 
-      # acc is enabled
-      if self.cruise_status > 0:
-        if self.pcm_acc_status == 0:
-          self.pcm_acc_status = 1
+      with open("/tmp/cruise_state") as f:
+        self.pcm_acc_status = int(f.read())
+
+      if self.standstill:
+        os.system("echo 0 > /tmp/cruise_state")
+        self.pcm_acc_status = 0
+
+      # # acc is enabled
+      # if self.cruise_status > 0:
+      #   if self.pcm_acc_status == 0:
+      #     os.system("echo 1 > /tmp/cruise_state")
+      #     self.pcm_acc_status = 1
       # acc is disabled
-      else:
-        if self.standstill:
-          if self.pcm_acc_status == 1:
-            self.pcm_acc_status = 0
-        else:
-          if self.pcm_acc_status == 0:
-            self.pcm_acc_status = 1
+      # else:
+        # if self.standstill:
+        #   if self.pcm_acc_status == 1:
+        #     os.system("echo 0 > /tmp/cruise_state")
+        #     self.pcm_acc_status = 0
+        # else:
+        #   if self.pcm_acc_status == 0:
+        #     os.system("echo 1 > /tmp/cruise_state")
+        #     self.pcm_acc_status = 1
