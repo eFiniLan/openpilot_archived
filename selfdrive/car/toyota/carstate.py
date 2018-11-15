@@ -160,7 +160,7 @@ class CarState(object):
     self.steer_override = abs(self.steer_torque_driver) > STEER_THRESHOLD
 
     self.user_brake = 0
-    self.pcm_acc_status = cp.vl["PCM_CRUISE"]['CRUISE_STATE']
+    # self.pcm_acc_status = cp.vl["PCM_CRUISE"]['CRUISE_STATE']
     self.gas_pressed = not cp.vl["PCM_CRUISE"]['GAS_RELEASED']
     if self.CP.carFingerprint == CAR.LEXUS_ISH:
       self.low_speed_lockout = False
