@@ -174,15 +174,23 @@ class CarState(object):
       self.generic_toggle = bool(cp.vl["LIGHT_STALK"]['AUTO_HIGH_BEAM'])
 
     # when toggle is off, we use default settings
-    # when toggle is on, we enable auto OP (steer), we reduce the steer_override threshold so it's easier to override
     if not self.generic_toggle:
       # default mode
       self.pcm_acc_status = cp.vl["PCM_CRUISE"]['CRUISE_STATE']
-      os.system("echo 0 > /tmp/cruise_state")
     else:
-      if self.brake_pressed:
-        self.pcm_acc_status = 0
-        os.system("echo %d > /tmp/cruise_state" % self.pcm_acc_status)
+      # ALWAYS ON OP code
+      self.cruise_status = cp.vl["PCM_CRUISE"]['CRUISE_STATE']
+      if self.v_cruise_pcm == 0:
+        self.v_cruise_pcm = 60
+      # acc is enabled
+      if self.cruise_status > 0:
+        if self.pcm_acc_status == 0:
+          self.pcm_acc_status = 1
+      # acc is disabled
       else:
-        with open("/tmp/cruise_state", "r+") as f:
-          self.pcm_acc_status = int(f.read())
+        if self.standstill:
+          if self.pcm_acc_status == 1:
+            self.pcm_acc_status = 0
+        else:
+          if self.pcm_acc_status == 0:
+            self.pcm_acc_status = 1
