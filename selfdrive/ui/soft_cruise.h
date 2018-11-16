@@ -56,48 +56,31 @@ static void ui_draw_soft_cruise_btn(UIState *s) {
   const int btn_txt_x = btn_x + btn_txt_offset;
   const int btn_set_txt_y = btn_set_y + btn_txt_offset;
   const int btn_res_txt_y = btn_res_y + btn_txt_offset;
-  const int cruise_state = get_cruise_state();
 
   // SET/-
   nvgBeginPath(s->vg);
   nvgRoundedRect(s->vg, btn_x, btn_set_y, btn_size, btn_size, 20);
-  if (cruise_state == 1) {
-    nvgStrokeColor(s->vg, nvgRGBA(23, 134, 68, 80));
-  } else {
-    nvgStrokeColor(s->vg, nvgRGBA(255, 255, 255, 80));
-  }
+  nvgStrokeColor(s->vg, nvgRGBA(255, 255, 255, 80));
   nvgStrokeWidth(s->vg, 6);
   nvgStroke(s->vg);
 
   nvgTextAlign(s->vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
   nvgFontFace(s->vg, "sans-bold");
   nvgFontSize(s->vg, 72);
-  if (cruise_state == 1) {
-    nvgFillColor(s->vg, nvgRGBA(23, 134, 68, 200));
-  } else {
-    nvgFillColor(s->vg, nvgRGBA(255, 255, 255, 200));
-  }
+  nvgFillColor(s->vg, nvgRGBA(255, 255, 255, 200));
   nvgText(s->vg, btn_txt_x, btn_set_txt_y, "SET/-", NULL);
 
   // RES/+
   nvgBeginPath(s->vg);
   nvgRoundedRect(s->vg, btn_x, btn_res_y, btn_size, btn_size, 20);
-  if (cruise_state == 1) {
-    nvgStrokeColor(s->vg, nvgRGBA(23, 134, 68, 80));
-  } else {
-    nvgStrokeColor(s->vg, nvgRGBA(255, 255, 255, 80));
-  }
+  nvgStrokeColor(s->vg, nvgRGBA(255, 255, 255, 80));
   nvgStrokeWidth(s->vg, 6);
   nvgStroke(s->vg);
 
   nvgTextAlign(s->vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
   nvgFontFace(s->vg, "sans-bold");
   nvgFontSize(s->vg, 72);
-  if (cruise_state == 1) {
-    nvgFillColor(s->vg, nvgRGBA(23, 134, 68, 200));
-  } else {
-    nvgFillColor(s->vg, nvgRGBA(255, 255, 255, 200));
-  }
+  nvgFillColor(s->vg, nvgRGBA(255, 255, 255, 200));
   nvgText(s->vg, btn_txt_x, btn_res_txt_y, "RES/+", NULL);
 }
 
