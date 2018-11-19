@@ -164,13 +164,13 @@ class CarState(object):
     else:
       self.ipas_active = cp.vl['EPS_STATUS']['IPAS_STATE'] == 3
     self.brake_error = 0
-    self.v_cruise_pcm = cp.vl["PCM_CRUISE_2"]['SET_SPEED']
     self.steer_torque_driver = cp.vl["STEER_TORQUE_SENSOR"]['STEER_TORQUE_DRIVER']
     self.steer_torque_motor = cp.vl["STEER_TORQUE_SENSOR"]['STEER_TORQUE_EPS']
     # we could use the override bit from dbc, but it's triggered at too high torque values
     self.steer_override = abs(self.steer_torque_driver) > STEER_THRESHOLD
 
     self.user_brake = 0
+    self.v_cruise_pcm = cp.vl["PCM_CRUISE_2"]['SET_SPEED']
     self.pcm_acc_status = cp.vl["PCM_CRUISE"]['CRUISE_STATE']
     self.pcm_acc_active = bool(cp.vl["PCM_CRUISE"]['CRUISE_ACTIVE'])
     self.gas_pressed = not cp.vl["PCM_CRUISE"]['GAS_RELEASED']
