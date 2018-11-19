@@ -1,5 +1,4 @@
 import numpy as np
-import os
 from common.kalman.simple_kalman import KF1D
 from selfdrive.can.parser import CANParser, CANDefine
 from selfdrive.config import Conversions as CV
