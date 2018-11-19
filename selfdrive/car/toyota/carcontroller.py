@@ -247,11 +247,11 @@ class CarController(object):
     else:
       send_ui = False
 
-    # if (frame % 100 == 0 or send_ui) and ECU.CAM in self.fake_ecus:
-    #   can_sends.append(create_ui_command(self.packer, steer, sound1, sound2))
+    if (frame % 100 == 0 or send_ui) and ECU.CAM in self.fake_ecus:
+      can_sends.append(create_ui_command(self.packer, steer, sound1, sound2))
 
-    # if frame % 100 == 0 and ECU.DSU in self.fake_ecus:
-    #   can_sends.append(create_fcw_command(self.packer, fcw))
+    if frame % 100 == 0 and ECU.DSU in self.fake_ecus:
+      can_sends.append(create_fcw_command(self.packer, fcw))
 
     #*** static msgs ***
 
