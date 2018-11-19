@@ -187,7 +187,6 @@ class CarState(object):
 
     # map active_op to generic_toggle
     if self.generic_toggle:
-
       # acc is enabled
       if self.pcm_acc_active:
         if self.pcm_acc_status == 0:
