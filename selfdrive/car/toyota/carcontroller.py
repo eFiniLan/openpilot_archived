@@ -51,7 +51,7 @@ def accel_hysteresis(accel, accel_steady, enabled):
   return accel, accel_steady
 
 
-def process_hud_alert(hud_alert, audible_alert, is_auto_op = False):
+def process_hud_alert(hud_alert, audible_alert, is_active_op = False):
   # initialize to no alert
   steer = 0
   fcw = 0
@@ -66,7 +66,7 @@ def process_hud_alert(hud_alert, audible_alert, is_auto_op = False):
   if audible_alert == AudibleAlert.chimeWarningRepeat:
     sound1 = 1
   elif audible_alert != AudibleAlert.none:
-    if (is_auto_op == True and audible_alert == 'beepSingle'):
+    if is_active_op and audible_alert == 'beepSingle':
       sound2 = 0
     else:
       # TODO: find a way to send single chimes
@@ -112,7 +112,6 @@ class CarController(object):
     self.last_standstill = False
     self.standstill_req = False
     self.angle_control = False
-    self.auto_control_timer = 0
 
     self.steer_angle_enabled = False
     self.ipas_reset_counter = 0
@@ -129,6 +128,7 @@ class CarController(object):
              pcm_cancel_cmd, hud_alert, audible_alert, forwarding_camera):
 
     # *** compute control surfaces ***
+
     # gas and brake
     apply_accel = actuators.gas - actuators.brake
     apply_accel, self.accel_steady = accel_hysteresis(apply_accel, self.accel_steady, enabled)
@@ -237,7 +237,7 @@ class CarController(object):
     # ui mesg is at 100Hz but we send asap if:
     # - there is something to display
     # - there is something to stop displaying
-    alert_out = process_hud_alert(hud_alert, audible_alert, CS.generic_toggle)
+    alert_out = process_hud_alert(hud_alert, audible_alert, CS.active_op)
     steer, fcw, sound1, sound2 = alert_out
 
     if (any(alert_out) and not self.alert_active) or \
@@ -247,11 +247,11 @@ class CarController(object):
     else:
       send_ui = False
 
-    if (frame % 100 == 0 or send_ui) and ECU.CAM in self.fake_ecus:
-      can_sends.append(create_ui_command(self.packer, steer, sound1, sound2))
+    # if (frame % 100 == 0 or send_ui) and ECU.CAM in self.fake_ecus:
+    #   can_sends.append(create_ui_command(self.packer, steer, sound1, sound2))
 
-    if frame % 100 == 0 and ECU.DSU in self.fake_ecus:
-      can_sends.append(create_fcw_command(self.packer, fcw))
+    # if frame % 100 == 0 and ECU.DSU in self.fake_ecus:
+    #   can_sends.append(create_fcw_command(self.packer, fcw))
 
     #*** static msgs ***
 

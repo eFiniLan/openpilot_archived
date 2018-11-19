@@ -145,7 +145,7 @@ class CarInterface(object):
       ret.safetyParam = 66
       ret.wheelbase = 2.80 # in spec
       ret.steerRatio = 13.3 # in spec
-      tire_stiffness_factor = 0.444
+      tire_stiffness_factor = 0.444 # from camry
       ret.mass = 3736.8 * CV.LB_TO_KG + std_cargo # in spec, mean of is300 (1680 kg) / is300h (1720 kg) / is350 (1685 kg)
       ret.steerKpV, ret.steerKiV = [[0.3], [0.1]]
       ret.steerKf = 0.00006 # from camry
@@ -335,9 +335,12 @@ class CarInterface(object):
     elif not ret.cruiseState.enabled:
       events.append(create_event('pcmDisable', [ET.USER_DISABLE]))
 
-    # disable when brake is pressed and speed isn't zero
-    # if ret.brakePressed and (not self.brake_pressed_prev or ret.vEgo > 0.001):
+    # # disable on pedals rising edge or when brake is pressed and speed isn't zero
+    # if (ret.gasPressed and not self.gas_pressed_prev) or \
+    #    (ret.brakePressed and (not self.brake_pressed_prev or ret.vEgo > 0.001)):
     #   events.append(create_event('pedalPressed', [ET.NO_ENTRY, ET.USER_DISABLE]))
+    # if ret.gasPressed:
+    #   events.append(create_event('pedalPressed', [ET.PRE_ENABLE]))
 
     ret.events = events
     ret.canMonoTimes = canMonoTimes
