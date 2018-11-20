@@ -66,7 +66,7 @@ def process_hud_alert(hud_alert, audible_alert, is_active_op = False):
   if audible_alert == AudibleAlert.chimeWarningRepeat:
     sound1 = 1
   elif audible_alert != AudibleAlert.none:
-    if is_active_op and audible_alert == 'beepSingle':
+    if is_active_op and audible_alert in [AudibleAlert.chimeDisengage, AudibleAlert.chimeEngage]:
       sound2 = 0
     else:
       # TODO: find a way to send single chimes
@@ -237,7 +237,7 @@ class CarController(object):
     # ui mesg is at 100Hz but we send asap if:
     # - there is something to display
     # - there is something to stop displaying
-    alert_out = process_hud_alert(hud_alert, audible_alert, CS.active_op)
+    alert_out = process_hud_alert(hud_alert, audible_alert, CS.generic_toggle)
     steer, fcw, sound1, sound2 = alert_out
 
     if (any(alert_out) and not self.alert_active) or \
