@@ -66,7 +66,7 @@ def process_hud_alert(hud_alert, audible_alert, is_active_op = False):
   if audible_alert == AudibleAlert.chimeWarningRepeat:
     sound1 = 1
   elif audible_alert != AudibleAlert.none:
-    if is_active_op and audible_alert in [AudibleAlert.chimeDisengage, AudibleAlert.chimeEngage]:
+    if is_active_op and audible_alert in [AudibleAlert.chimeEngage, AudibleAlert.chimeDisengage]:
       sound2 = 0
     else:
       # TODO: find a way to send single chimes
