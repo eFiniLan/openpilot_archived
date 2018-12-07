@@ -4,7 +4,7 @@ import time
 
 # custom service run tasks every SLEEP_TIMER second(s)
 
-POWER_OFF_TIMER = 3 # shut down after POWER_OFF_TIMER hours of no USB connection, set to 0 to disable this.
+POWER_OFF_TIMER = 1.5 # shut down after POWER_OFF_TIMER hours of no USB connection, set to 0 to disable this.
 SLEEP_TIMER = 5 # sleep timer, in seconds, how often you would like the script to query the system status.
 BAT_TEMP_LIMIT = 460 # temp limit - 46 degree, match thermald.py, it stop charging when reach this temp level.
 BAT_CAP_LIMIT = 35 # battery limit (percentage), if battery capacity is lower than this then it will keep charging.
