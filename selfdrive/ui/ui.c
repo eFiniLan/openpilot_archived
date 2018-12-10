@@ -1965,7 +1965,7 @@ int main() {
     }
 
     if (s->awake) {
-      soft_cruise(s, touch_x, touch_y);
+      //soft_cruise(s, touch_x, touch_y);
       ui_draw(s);
       glFinish();
       should_swap = true;
