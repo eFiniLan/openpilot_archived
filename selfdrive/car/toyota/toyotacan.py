@@ -75,6 +75,20 @@ def create_accel_command(packer, accel, pcm_cancel, standstill_req):
   }
   return packer.make_can_msg("ACC_CONTROL", 0, values)
 
+def create_ish_accel_command(packer, accel, pcm_cancel, raw_cnt):
+  request = 0x84
+  if pcm_cancel == 1:
+    request = 0x00
+
+  values = {
+    "COUNTER": raw_cnt,
+    "SET_ME_X00_0": 0x00,
+    "SET_ME_X00_1": 0x00,
+    "ACCEL_CMD": accel,
+    "CANCEL_REQ": request,
+    "SET_ME_X00_2": 0x00,
+  }
+  return packer.make_can_msg("LEXUS_ISH_ACC_CONTROL", 0, values)
 
 def create_fcw_command(packer, fcw):
   values = {
