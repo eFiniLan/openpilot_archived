@@ -76,14 +76,6 @@ BO_ 740 STEERING_LKA: 5 XXX
  SG_ STEER_TORQUE_CMD : 15|16@0- (1,0) [0|65535] "" XXX
  SG_ CHECKSUM : 39|8@0+ (1,0) [0|255] "" XXX
 
-BO_ 835 ACC_CONTROL: 8 DSU
- SG_ ACCEL_CMD : 7|16@0- (0.001,0) [-20|20] "m/s2" HCU
- SG_ SET_ME_X63 : 23|8@0+ (1,0) [0|255] "" HCU
- SG_ SET_ME_1 : 30|1@0+ (1,0) [0|1] "" HCU
- SG_ RELEASE_STANDSTILL : 31|1@0+ (1,0) [0|1] "" HCU
- SG_ CANCEL_REQ : 24|1@0+ (1,0) [0|1] "" HCU
- SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
-
 BO_ 1556 STEERING_LEVERS: 8 XXX
  SG_ TURN_SIGNALS : 29|2@0+ (1,0) [0|3] "" XXX
 
@@ -177,6 +169,24 @@ BO_ 1009 PCM_CRUISE_2: 8 XXX
  SG_ MAIN_ON : 13|1@0+ (1,0) [0|3] "" XXX
  SG_ CRUISE_STATE : 10|1@0+ (1,0) [0|1] "" XXX
  SG_ SET_SPEED : 23|8@0+ (1,0) [0|255] "kph" XXX
+
+BO_ 835 LEXUS_ISH_ACC_CONTROL: 7 DS1
+ SG_ COUNTER : 6|7@0+ (1,0) [0|127] "" XXX
+ SG_ SET_ME_X00_0 : 7|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ SET_ME_X00_1 : 15|8@0+ (1,0) [0|255] "" XXX
+ SG_ ACCEL_CMD : 23|16@0- (0.001,0) [-20|20] "m/s2" Vector__XXX
+ SG_ CANCEL_REQ : 39|8@0+ (1,0) [0|255] "" XXX
+ SG_ SET_ME_X00_2 : 47|8@0+ (1,0) [0|255] "" XXX
+ SG_ CHECKSUM : 55|8@0+ (1,0) [0|0] "" FCM
+
+BO_ 643 LEXUS_ISH_ACC_CONTROL_2: 7 DS1
+ SG_ COUNTER : 6|7@0+ (1,0) [0|127] "" XXX
+ SG_ SET_ME_X00_0 : 7|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ SET_ME_X00_1 : 15|8@0+ (1,0) [0|255] "" XXX
+ SG_ ACCEL_CMD : 23|16@0- (0.001,0) [-20|20] "m/s2" Vector__XXX
+ SG_ CANCEL_REQ : 39|8@0+ (1,0) [0|255] "" XXX
+ SG_ SET_ME_X00_2 : 47|8@0+ (1,0) [0|255] "" XXX
+ SG_ CHECKSUM : 55|8@0+ (1,0) [0|0] "" FCM
 
 CM_ SG_ 581 GAS_PEDAL "it seems slightly filtered";
 CM_ SG_ 610 TYPE "seems 1 on Corolla, 0 on all others";

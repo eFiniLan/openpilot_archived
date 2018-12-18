@@ -72,9 +72,10 @@ STATIC_MSGS = [
 ]
 
 ECU_FINGERPRINT = {
-  ECU.CAM: 0x2e4,   # steer torque cmd
-  ECU.DSU: 0x343,   # accel cmd
-  ECU.APGS: 0x835,  # angle cmd
+  ECU.CAM: 0x2e4,      # steer torque cmd
+  ECU.DSU: 0x343,      # accel cmd
+  ECU.APGS: 0x835,     # angle cmd
+  ECU.ISH_DSU: 0x343,  # accel cmd for LEXUS ISH
 }
 
 

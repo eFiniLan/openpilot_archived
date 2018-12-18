@@ -286,6 +286,7 @@ struct CarParams {
   enableCamera @26 :Bool;
   enableDsu @27 :Bool; # driving support unit
   enableApgs @28 :Bool; # advanced parking guidance system
+  enableIshDsu @29 :Bool; # lexus ish driving support unit
 
   minEnableSpeed @17 :Float32;
   minSteerSpeed @49 :Float32;

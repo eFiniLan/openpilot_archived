@@ -97,7 +97,7 @@ def ipas_state_transition(steer_angle_enabled, enabled, ipas_active, ipas_reset_
 
 
 class CarController(object):
-  def __init__(self, dbc_name, car_fingerprint, enable_camera, enable_dsu, enable_apg):
+  def __init__(self, dbc_name, car_fingerprint, enable_camera, enable_dsu, enable_apg, enable_ish_dsu):
     self.braking = False
     # redundant safety check with the board
     self.controls_allowed = True
@@ -118,6 +118,7 @@ class CarController(object):
     if enable_camera: self.fake_ecus.add(ECU.CAM)
     if enable_dsu: self.fake_ecus.add(ECU.DSU)
     if enable_apg: self.fake_ecus.add(ECU.APGS)
+    if enable_ish_dsu: self.fake_ecus.add(ECU.ISH_DSU)
 
     self.packer = CANPacker(dbc_name)
 
@@ -214,8 +215,16 @@ class CarController(object):
     elif ECU.APGS in self.fake_ecus:
       can_sends.append(create_ipas_steer_command(self.packer, 0, 0, True))
 
+    # accel cmd comes from lexus ish DSU
+    if (frame % 3 == 0 and ECU.ISH_DSU in self.fake_ecus) or (pcm_cancel_cmd and ECU.CAM in self.fake_ecus):
+      cnt = frame / 3 & 0x7f
+      if ECU.ISH_DSU in self.fake_ecus:
+        can_sends.append(create_ish_accel_command(self.packer, apply_accel, pcm_cancel_cmd, cnt))
+      else:
+        can_sends.append(create_ish_accel_command(self.packer, 0, pcm_cancel_cmd, cnt))
+
     # accel cmd comes from DSU, but we can spam can to cancel the system even if we are using lat only control
-    if (frame % 3 == 0 and ECU.DSU in self.fake_ecus) or (pcm_cancel_cmd and ECU.CAM in self.fake_ecus):
+    elif (frame % 3 == 0 and ECU.DSU in self.fake_ecus) or (pcm_cancel_cmd and ECU.CAM in self.fake_ecus):
       if ECU.DSU in self.fake_ecus:
         can_sends.append(create_accel_command(self.packer, apply_accel, pcm_cancel_cmd, self.standstill_req))
       else:
