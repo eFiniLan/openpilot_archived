@@ -141,6 +141,15 @@ class CarInterface(object):
       ret.steerKpV, ret.steerKiV = [[0.6], [0.05]]
       ret.steerKf = 0.00006
 
+    elif candidate == CAR.LEXUS_RXT:
+       ret.safetyParam = 73 # see conversion factor for STEER_TORQUE_EPS in dbc file
+       ret.wheelbase = 2.79
+       ret.steerRatio = 14.8  # 14.8 is spec end-to-end
+       tire_stiffness_factor = 0.444  # not optimized yet
+       ret.mass = 4481 * CV.LB_TO_KG + std_cargo  # mean between min and max
+       ret.steerKpV, ret.steerKiV = [[0.6], [0.1]]
+       ret.steerKf = 0.00006   # full torque for 10 deg at 80mph means 0.00007818594
+
     ret.steerRateCost = 1.
     ret.centerToFront = ret.wheelbase * 0.44
 
@@ -151,7 +160,7 @@ class CarInterface(object):
     # to a negative value, so it won't matter.
     # hybrid models can't do stop and go even though the stock ACC can't
     if candidate in [CAR.PRIUS, CAR.RAV4H, CAR.LEXUS_RXH, CAR.CHR,
-                     CAR.CHRH, CAR.CAMRY, CAR.CAMRYH, CAR.HIGHLANDERH, CAR.HIGHLANDER]:
+                     CAR.CHRH, CAR.CAMRY, CAR.CAMRYH, CAR.HIGHLANDERH, CAR.HIGHLANDER, CAR.LEXUS_RXT]:
       ret.minEnableSpeed = -1.
     elif candidate in [CAR.RAV4, CAR.COROLLA]: # TODO: hack ICE to do stop and go
       ret.minEnableSpeed = 19. * CV.MPH_TO_MS
