@@ -5,7 +5,7 @@ from selfdrive.car import apply_toyota_steer_torque_limits
 from selfdrive.car.toyota.toyotacan import make_can_msg, create_video_target,\
                                            create_steer_command, create_ui_command, \
                                            create_ipas_steer_command, create_accel_command, \
-                                           create_fcw_command, create_ish_accel_command
+                                           create_fcw_command, create_gas_command, create_ish_accel_command
 from selfdrive.car.toyota.values import ECU, STATIC_MSGS
 from selfdrive.can.packer import CANPacker
 
@@ -20,10 +20,10 @@ ACCEL_SCALE = max(ACCEL_MAX, -ACCEL_MIN)
 
 # Steer torque limits
 class SteerLimitParams:
-STEER_MAX = 1500
-STEER_DELTA_UP = 10       # 1.5s time to peak torque
-STEER_DELTA_DOWN = 25     # always lower than 45 otherwise the Rav4 faults (Prius seems ok with 50)
-STEER_ERROR_MAX = 350     # max delta between torque cmd and torque motor
+  STEER_MAX = 1500
+  STEER_DELTA_UP = 10       # 1.5s time to peak torque
+  STEER_DELTA_DOWN = 25     # always lower than 45 otherwise the Rav4 faults (Prius seems ok with 50)
+  STEER_ERROR_MAX = 350     # max delta between torque cmd and torque motor
 
 # Steer angle limits (tested at the Crows Landing track and considered ok)
 ANGLE_MAX_BP = [0., 5.]
@@ -130,7 +130,16 @@ class CarController(object):
     # *** compute control surfaces ***
 
     # gas and brake
-    apply_accel = actuators.gas - actuators.brake
+
+    apply_gas = clip(actuators.gas, 0., 1.)
+
+    if CS.CP.enableGasInterceptor:
+      # send only negative accel if interceptor is detected. otherwise, send the regular value
+      # +0.06 offset to reduce ABS pump usage when OP is engaged
+      apply_accel = 0.06 - actuators.brake
+    else:
+      apply_accel = actuators.gas - actuators.brake
+
     apply_accel, self.accel_steady = accel_hysteresis(apply_accel, self.accel_steady, enabled)
     apply_accel = clip(apply_accel * ACCEL_SCALE, ACCEL_MIN, ACCEL_MAX)
 
@@ -221,6 +230,11 @@ class CarController(object):
         can_sends.append(create_accel_command(self.packer, apply_accel, pcm_cancel_cmd, self.standstill_req, lead))
       else:
         can_sends.append(create_accel_command(self.packer, 0, pcm_cancel_cmd, False, lead))
+
+    if CS.CP.enableGasInterceptor:
+        # send exactly zero if apply_gas is zero. Interceptor will send the max between read value and apply_gas.
+        # This prevents unexpected pedal range rescaling
+        can_sends.append(create_gas_command(self.packer, apply_gas))
 
     if frame % 10 == 0 and ECU.CAM in self.fake_ecus and not forwarding_camera:
       for addr in TARGET_IDS:
