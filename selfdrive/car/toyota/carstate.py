@@ -202,3 +202,12 @@ class CarState(object):
       self.generic_toggle = bool(cp.vl["LIGHT_STALK_ISH"]['AUTO_HIGH_BEAM'])
     else:
       self.generic_toggle = bool(cp.vl["LIGHT_STALK"]['AUTO_HIGH_BEAM'])
+
+    if self.generic_toggle and self.main_on:
+      self.pcm_acc_active = True
+      if self.standstill:
+        # self.pcm_acc_active = False
+        self.pcm_acc_status = 7
+      else:
+        # self.pcm_acc_active = True
+        self.pcm_acc_status = 1

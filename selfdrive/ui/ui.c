@@ -1288,15 +1288,15 @@ static void ui_draw_vision_speed(UIState *s) {
   nvgFillColor(s->vg, nvgRGBA(255, 255, 255, 255));
   nvgText(s->vg, viz_speed_x+viz_speed_w/2, 240, speed_str, NULL);
 
-  nvgFontFace(s->vg, "sans-regular");
-  nvgFontSize(s->vg, 36*2.5);
-  nvgFillColor(s->vg, nvgRGBA(255, 255, 255, 200));
-
-  if (s->is_metric) {
-    nvgText(s->vg, viz_speed_x+viz_speed_w/2, 320, "kph", NULL);
-  } else {
-    nvgText(s->vg, viz_speed_x+viz_speed_w/2, 320, "mph", NULL);
-  }
+//  nvgFontFace(s->vg, "sans-regular");
+//  nvgFontSize(s->vg, 36*2.5);
+//  nvgFillColor(s->vg, nvgRGBA(255, 255, 255, 200));
+//
+//  if (s->is_metric) {
+//    nvgText(s->vg, viz_speed_x+viz_speed_w/2, 320, "kph", NULL);
+//  } else {
+//    nvgText(s->vg, viz_speed_x+viz_speed_w/2, 320, "mph", NULL);
+//  }
 }
 
 static void ui_draw_vision_event(UIState *s) {
@@ -1419,10 +1419,10 @@ static void ui_draw_vision_header(UIState *s) {
   nvgRect(s->vg, ui_viz_rx, box_y, ui_viz_rw, header_h);
   nvgFill(s->vg);
 
-  ui_draw_vision_maxspeed(s);
-  ui_draw_vision_speedlimit(s);
+//  ui_draw_vision_maxspeed(s);
+//  ui_draw_vision_speedlimit(s);
   ui_draw_vision_speed(s);
-  ui_draw_vision_event(s);
+//  ui_draw_vision_event(s);
 }
 
 static void ui_draw_vision_footer(UIState *s) {
@@ -1433,8 +1433,8 @@ static void ui_draw_vision_footer(UIState *s) {
   nvgBeginPath(s->vg);
   nvgRect(s->vg, ui_viz_rx, footer_y, ui_viz_rw, footer_h);
 
-  ui_draw_vision_face(s);
-  ui_draw_vision_map(s);
+  //ui_draw_vision_face(s);
+  //ui_draw_vision_map(s);
 }
 
 static void ui_draw_vision_alert(UIState *s, int va_size, int va_color,

@@ -70,7 +70,11 @@ def process_hud_alert(hud_alert, audible_alert):
     sound1 = 1
   elif audible_alert != AudibleAlert.none:
     # TODO: find a way to send single chimes
-    sound2 = 1
+    if audible_alert in [AudibleAlert.chimeEngage, AudibleAlert.chimeDisengage]:
+      sound2 = 0
+    else:
+      # TODO: find a way to send single chimes
+      sound2 = 1
 
   return steer, fcw, sound1, sound2
 
