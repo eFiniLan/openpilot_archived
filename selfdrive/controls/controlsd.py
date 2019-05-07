@@ -489,9 +489,6 @@ def controlsd_thread(gctx=None, rate=100):
       events.append(create_event('vehicleModelInvalid', [ET.WARNING]))
     events += list(plan.plan.events)
 
-    # Only allow engagement with brake pressed when stopped behind another stopped car
-    if CS.brakePressed and plan.plan.vTargetFuture >= STARTING_TARGET_SPEED and not CP.radarOffCan and CS.vEgo < 0.3:
-      events.append(create_event('noTarget', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
 
     if not passive:
       # update control state
