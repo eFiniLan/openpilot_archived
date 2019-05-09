@@ -292,6 +292,8 @@ typedef struct UIState {
 
 } UIState;
 
+#include "./soft_cruise.h"
+
 static int last_brightness = -1;
 static void set_brightness(UIState *s, int brightness) {
   if (last_brightness != brightness && (s->awake || brightness == 0)) {
@@ -2287,6 +2289,9 @@ int main() {
     }
     // Don't waste resources on drawing in case screen is off or car is not started.
     if (s->awake && s->vision_connected) {
+      int touch_x = -1, touch_y = -1;
+      int touched = touch_read(&touch, &touch_x, &touch_y);
+      soft_cruise(s, touch_x, touch_y);
       ui_draw(s);
       glFinish();
       should_swap = true;
