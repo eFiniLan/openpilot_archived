@@ -366,3 +366,8 @@ struct CarParams {
     angle @1;
   }
 }
+
+struct SoftCruise {
+  state @1 :Bool
+  speed @2 :Int8
+}

@@ -7,49 +7,24 @@ int btn_set_y = 0;
 int btn_res_y = 0;
 
 bool is_init = false;
+bool cruise_state = false;
 int cruise_speed = 0;
-
-/**
- * Write cruise state to a tmp file so it's accessible everywhere
- */
-static void set_cruise_state(int val) {
-  char cmd[100];
-  sprintf(cmd, "echo %d > /tmp/cruise_state", val);
-  system(cmd);
-}
-
-/**
- * Read cruise state from the tmp file because the state can be changed outside
- */
-static int get_cruise_state() {
-    int fd = open("/tmp/cruise_state", O_RDONLY);
-    if (fd < 0) {
-      set_cruise_state(0);
-      return 0;
-    }
-    char buffer[1];
-    read(fd, buffer, 1);
-    return atoi(buffer);
-}
 
 /**
  * Draw buttons to the UI
  */
 static void ui_draw_soft_cruise_btn(UIState *s) {
   if (btn_x == 0 || btn_set_y == 0 || btn_res_y == 0) {
-      const UIScene *scene = &s->scene;
-      int ui_viz_rx = scene->ui_viz_rx;
-      int ui_viz_rw = scene->ui_viz_rw;
-
-      const int bdr_s = 30;
-      const int viz_event_w = 220;
-      const int viz_event_x = ((ui_viz_rx + ui_viz_rw) - (viz_event_w + (bdr_s*2)));
-
-      const int btn_gap = 40;
-
-      btn_x = viz_event_x + (viz_event_w-btn_size);
-      btn_set_y = (footer_y + ((footer_h - btn_size) / 2));
-      btn_res_y = btn_set_y - btn_size - btn_gap;
+    const UIScene *scene = &s->scene;
+    int ui_viz_rx = scene->ui_viz_rx;
+    int ui_viz_rw = scene->ui_viz_rw
+    const int bdr_s = 30;
+    const int viz_event_w = 220;
+    const int viz_event_x = ((ui_viz_rx + ui_viz_rw) - (viz_event_w + (bdr_s*2)))
+    const int btn_gap = 40
+    btn_x = viz_event_x + (viz_event_w-btn_size);
+    btn_set_y = (footer_y + ((footer_h - btn_size) / 2));
+    btn_res_y = btn_set_y - btn_size - btn_gap;
   }
 
   const int btn_txt_offset = 80;
@@ -85,38 +60,29 @@ static void ui_draw_soft_cruise_btn(UIState *s) {
 }
 
 /**
- * Write cruise speed to a tmp file so it's accessible everywhere
- */
-static void set_cruise_speed(int val) {
-  char cmd[100];
-  sprintf(cmd, "echo %d > /tmp/cruise_speed", val);
-  system(cmd);
-  cruise_speed = val;
-}
-
-/**
  * Actions when touch "RES/+" button
  */
-static void do_res(int speed) {
-  if (get_cruise_state() == 1) {
-    set_cruise_speed(cruise_speed+1);
+static void do_res() {
+  if (cruise_state) {
+    cruise_speed += 1;
   } else {
     if (cruise_speed > 0) {
-      set_cruise_state(1);
+      cruise_state = true;
     }
   }
+  update_soft_cruise();
 }
 
 /**
  * Actions when touch "SET/-" button
  */
-static void do_set(int speed) {
-  if (get_cruise_state() == 1) {
-    set_cruise_speed(cruise_speed-1);
+static void do_set() {
+  if (cruise_state) {
+    cruise_speed -= 1;
   } else {
-    set_cruise_speed(speed);
-    set_cruise_state(1);
+    cruise_state = true;
   }
+  update_soft_cruise();
 }
 
 /**
@@ -126,17 +92,29 @@ static void on_btn_touched(UIState *s, int touch_x, int touch_y) {
   float speed = s->scene.v_ego;
   if (touch_x >= btn_x && touch_x <= (btn_x+btn_size)) {
     if (touch_y >= btn_set_y && touch_y <= (btn_set_y+btn_size)) {
-      do_set(speed);
+      do_set();
     }
     if (touch_y >= btn_res_y && touch_y <= (btn_res_y+btn_size)) {
-      do_res(speed);
+      do_res();
     }
   }
 }
 
+static void update_soft_cruise() {
+  struct capn rc;
+  capn_init_malloc(&rc);
+  struct capn_segment *cs = capn_root(&rc).seg;
+
+  cereal_SoftCruise_ptr p = cereal_new_SoftCruise(cs);
+  struct cereal_SoftCruise sc = (struct cereal_SoftCruise) {
+    .state = cruise_state,
+    .speed = cruise_speed
+  }
+  cereal_write_SoftCruise(&sc, p)
+}
+
 static void init() {
-  set_cruise_state(0);
-  set_cruise_speed(0);
+  update_soft_cruise();
   is_init = true;
 }
 
