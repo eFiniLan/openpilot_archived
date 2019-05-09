@@ -368,6 +368,6 @@ struct CarParams {
 }
 
 struct SoftCruise {
-  state @1 :Bool
-  speed @2 :Int8
+  state @1 :Bool;
+  speed @2 :Int8;
 }
