@@ -17,11 +17,11 @@ static void ui_draw_soft_cruise_btn(UIState *s) {
   if (btn_x == 0 || btn_set_y == 0 || btn_res_y == 0) {
     const UIScene *scene = &s->scene;
     int ui_viz_rx = scene->ui_viz_rx;
-    int ui_viz_rw = scene->ui_viz_rw
+    int ui_viz_rw = scene->ui_viz_rw;
     const int bdr_s = 30;
     const int viz_event_w = 220;
-    const int viz_event_x = ((ui_viz_rx + ui_viz_rw) - (viz_event_w + (bdr_s*2)))
-    const int btn_gap = 40
+    const int viz_event_x = ((ui_viz_rx + ui_viz_rw) - (viz_event_w + (bdr_s*2)));
+    const int btn_gap = 40;
     btn_x = viz_event_x + (viz_event_w-btn_size);
     btn_set_y = (footer_y + ((footer_h - btn_size) / 2));
     btn_res_y = btn_set_y - btn_size - btn_gap;
@@ -57,6 +57,19 @@ static void ui_draw_soft_cruise_btn(UIState *s) {
   nvgFontSize(s->vg, 72);
   nvgFillColor(s->vg, nvgRGBA(255, 255, 255, 200));
   nvgText(s->vg, btn_txt_x, btn_res_txt_y, "RES/+", NULL);
+}
+
+static void update_soft_cruise() {
+  struct capn rc;
+  capn_init_malloc(&rc);
+  struct capn_segment *cs = capn_root(&rc).seg;
+
+  cereal_SoftCruise_ptr p = cereal_new_SoftCruise(cs);
+  struct cereal_SoftCruise sc = (struct cereal_SoftCruise) {
+    .state = cruise_state,
+    .speed = cruise_speed
+  }
+  cereal_write_SoftCruise(&sc, p)
 }
 
 /**
@@ -100,18 +113,6 @@ static void on_btn_touched(UIState *s, int touch_x, int touch_y) {
   }
 }
 
-static void update_soft_cruise() {
-  struct capn rc;
-  capn_init_malloc(&rc);
-  struct capn_segment *cs = capn_root(&rc).seg;
-
-  cereal_SoftCruise_ptr p = cereal_new_SoftCruise(cs);
-  struct cereal_SoftCruise sc = (struct cereal_SoftCruise) {
-    .state = cruise_state,
-    .speed = cruise_speed
-  }
-  cereal_write_SoftCruise(&sc, p)
-}
 
 static void init() {
   update_soft_cruise();
