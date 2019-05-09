@@ -69,7 +69,7 @@ static void update_soft_cruise() {
     .state = cruise_state,
     .speed = cruise_speed
   }
-  cereal_write_SoftCruise(&sc, p)
+  cereal_write_SoftCruise(&sc, p);
 }
 
 /**
