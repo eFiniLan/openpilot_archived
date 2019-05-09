@@ -68,7 +68,7 @@ static void update_soft_cruise() {
   struct cereal_SoftCruise sc = (struct cereal_SoftCruise) {
     .state = cruise_state,
     .speed = cruise_speed
-  }
+  };
   cereal_write_SoftCruise(&sc, p);
 }
 
