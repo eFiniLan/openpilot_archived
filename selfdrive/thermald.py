@@ -185,7 +185,8 @@ def thermald_thread():
   params = Params()
 
   while 1:
-    print SoftCruise
+    print ("SoftCruise State: " % SoftCruise.state)
+    print ("SoftCruise Speed: " % SoftCruise.speed)
     health = messaging.recv_sock(health_sock, wait=True)
     location = messaging.recv_sock(location_sock)
     location = location.gpsLocation if location else None
