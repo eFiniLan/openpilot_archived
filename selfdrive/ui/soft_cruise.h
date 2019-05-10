@@ -1,5 +1,3 @@
-#include "cereal/gen/c/car.capnp.h"
-
 const int btn_size = 160;
 
 int btn_x = 0;

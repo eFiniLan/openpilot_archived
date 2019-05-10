@@ -1720,3 +1720,8 @@ struct Event {
     kalmanOdometry @65 :KalmanOdometry;
   }
 }
+
+struct SoftCruise {
+  state @0 :Bool;
+  speed @1 :Int8;
+}
