@@ -15,6 +15,7 @@ from common.filter_simple import FirstOrderFilter
 
 ThermalStatus = log.ThermalData.ThermalStatus
 CURRENT_TAU = 15.   # 15s time constant
+SoftCruise = log.SoftCruise
 
 def read_tz(x):
   with open("/sys/devices/virtual/thermal/thermal_zone%d/temp" % x) as f:
@@ -184,6 +185,7 @@ def thermald_thread():
   params = Params()
 
   while 1:
+    print SoftCruise
     health = messaging.recv_sock(health_sock, wait=True)
     location = messaging.recv_sock(location_sock)
     location = location.gpsLocation if location else None
