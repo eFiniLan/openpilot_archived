@@ -68,6 +68,7 @@ static void update_soft_cruise() {
     .speed = cruise_speed
   };
   cereal_write_SoftCruise(&sc, p);
+  printf("update cereal\n");
 }
 
 /**
