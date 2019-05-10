@@ -1,4 +1,4 @@
-#include "cereal/gen/c/log.capnp.h"
+#include "cereal/gen/c/car.capnp.h"
 
 const int btn_size = 160;
 
