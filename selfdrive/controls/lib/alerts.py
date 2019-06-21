@@ -160,7 +160,7 @@ ALERTS = [
   Alert(
       "geofence",
       "DISENGAGEMENT REQUIRED",
-      "Not in Geofenced Area",
+      "不在地理圍欄區域之內",
       AlertStatus.userPrompt, AlertSize.mid,
       Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.chimeWarningRepeat, .1, .1, .1),
 
