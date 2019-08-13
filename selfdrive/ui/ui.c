@@ -35,6 +35,7 @@
 
 #include "cereal/gen/c/log.capnp.h"
 #include "slplay.h"
+#include <time.h>
 
 #define STATUS_STOPPED 0
 #define STATUS_DISENGAGED 1
@@ -68,6 +69,7 @@ const int viz_w = vwp_w-(bdr_s*2);
 const int header_h = 420;
 const int footer_h = 280;
 const int footer_y = vwp_h-bdr_s-footer_h;
+const int bdr_is = 30;
 
 const int UI_FREQ = 30;   // Hz
 
@@ -163,6 +165,11 @@ typedef struct UIScene {
 
   // Used to show gps planner status
   bool gps_planner_active;
+
+  // for minimal UI
+  float angleSteersDes;
+  float angleSteers;
+
 } UIScene;
 
 typedef struct {
@@ -195,6 +202,8 @@ typedef struct UIState {
   int font_sans_regular;
   int font_sans_semibold;
   int font_sans_bold;
+  int font_miui_regular;
+  int font_miui_bold;
   int img_wheel;
   int img_turn;
   int img_face;
@@ -285,6 +294,22 @@ typedef struct UIState {
   model_path_vertices_data model_path_vertices[MODEL_LANE_PATH_CNT * 2];
 
   track_vertices_data track_vertices[2];
+
+  // dragonpilot
+  int dragon_ui_event_timeout;
+  int dragon_ui_maxspeed_timeout;
+  int dragon_ui_face_timeout;
+  int dragon_ui_dev_timeout;
+  int dragon_ui_dev_mini_timeout;
+  int dragon_enable_dashcam_timeout;
+
+  bool dragon_ui_event;
+  bool dragon_ui_maxspeed;
+  bool dragon_ui_face;
+  bool dragon_ui_dev;
+  bool dragon_ui_dev_mini;
+  bool dragon_enable_dashcam;
+
 } UIState;
 
 static int last_brightness = -1;
@@ -511,6 +536,10 @@ static void ui_init(UIState *s) {
   assert(s->font_sans_semibold >= 0);
   s->font_sans_bold = nvgCreateFont(s->vg, "sans-bold", "../assets/fonts/opensans_bold.ttf");
   assert(s->font_sans_bold >= 0);
+  s->font_miui_regular = nvgCreateFont(s->vg, "miui-regular", "/system/fonts/Miui-Regular.ttf");
+  assert(s->font_miui_regular >= 0);
+  s->font_miui_bold = nvgCreateFont(s->vg, "miui-bold", "/system/fonts/Miui-Bold.ttf");
+  assert(s->font_miui_bold >= 0);
 
   assert(s->img_wheel >= 0);
   s->img_wheel = nvgCreateImage(s->vg, "../assets/img_chffr_wheel.png", 1);
@@ -650,11 +679,27 @@ static void ui_init_vision(UIState *s, const VisionStreamBufs back_bufs,
   read_param_bool(&s->is_metric, "IsMetric");
   read_param_bool(&s->longitudinal_control, "LongitudinalControl");
   read_param_bool(&s->limit_set_speed, "LimitSetSpeed");
+  // dragonpilot
+  read_param_bool(&s->dragon_ui_event, "DragonUIEvent");
+  read_param_bool(&s->dragon_ui_maxspeed, "DragonUIMaxSpeed");
+  read_param_bool(&s->dragon_ui_face, "DragonUIFace");
+  read_param_bool(&s->dragon_ui_dev, "DragonUIDev");
+  read_param_bool(&s->dragon_ui_dev_mini, "DragonUIDevMini");
+  read_param_bool(&s->dragon_enable_dashcam, "DragonEnableDashcam");
+
 
   // Set offsets so params don't get read at the same time
   s->longitudinal_control_timeout = UI_FREQ / 3;
   s->is_metric_timeout = UI_FREQ / 2;
   s->limit_set_speed_timeout = UI_FREQ;
+
+  // dragonpilot, 1 sec
+  s->dragon_ui_event_timeout = 100;
+  s->dragon_ui_maxspeed_timeout = 100;
+  s->dragon_ui_face_timeout = 100;
+  s->dragon_ui_dev_timeout = 100;
+  s->dragon_ui_dev_mini_timeout = 100;
+  s->dragon_enable_dashcam_timeout = 100;
 }
 
 static void ui_draw_transformed_box(UIState *s, uint32_t color) {
@@ -1395,13 +1440,297 @@ static void ui_draw_vision_header(UIState *s) {
   nvgRect(s->vg, ui_viz_rx, box_y, ui_viz_rw, header_h);
   nvgFill(s->vg);
 
-  ui_draw_vision_maxspeed(s);
+  if (s->dragon_ui_maxspeed) {
+    ui_draw_vision_maxspeed(s);
+  }
 
 #ifdef SHOW_SPEEDLIMIT
   ui_draw_vision_speedlimit(s);
 #endif
   ui_draw_vision_speed(s);
-  ui_draw_vision_event(s);
+  if (s->dragon_ui_event) {
+    ui_draw_vision_event(s);
+  }
+}
+
+static void ui_draw_infobar(UIState *s) {
+  // timestamp from pjlao307 dashcam (https://github.com/pjlao307)
+  int rect_w = 1440; // 1920 * 0.75
+  int rect_h = 50;
+  int rect_x = (1920-rect_w)/2;
+  int rect_y = (1080-rect_h-50);
+  int sidebar_offset = 0;
+  bool hasSidebar = !s->scene.uilayout_sidebarcollapsed;
+  if (hasSidebar) {
+    sidebar_offset = 100;
+  }
+
+
+  // Get local time to display
+  char infobar[68];
+  time_t t = time(NULL);
+  struct tm tm = *localtime(&t);
+
+  if (s->dragon_ui_dev_mini) {
+      char rel_steer[9];
+      snprintf(rel_steer, sizeof(rel_steer), "%s%05.1f°", s->scene.angleSteers < 0? "-" : "+", fabs(s->scene.angleSteers));
+
+      char des_steer[9];
+      if (s->scene.engaged) {
+        snprintf(des_steer, sizeof(des_steer), "%s%05.1f°", s->scene.angleSteersDes < 0? "-" : "+", fabs(s->scene.angleSteersDes));
+      } else {
+        snprintf(des_steer, sizeof(des_steer), "%7s", "N/A");
+      }
+
+
+      char lead_dist[8];
+      if (s->scene.lead_status) {
+        snprintf(lead_dist, sizeof(lead_dist), "%06.2fm", s->scene.lead_d_rel);
+      } else {
+        snprintf(lead_dist, sizeof(lead_dist), "%7s", "N/A");
+      }
+
+
+      snprintf(
+        infobar,
+        sizeof(infobar),
+        "%04d/%02d/%02d %02d:%02d:%02d | REL: %s | DES: %s | DIST: %s",
+        tm.tm_year + 1900,
+        tm.tm_mon + 1,
+        tm.tm_mday,
+        tm.tm_hour,
+        tm.tm_min,
+        tm.tm_sec,
+        rel_steer,
+        des_steer,
+        lead_dist
+      );
+  } else {
+      snprintf(
+        infobar,
+        sizeof(infobar),
+        "%04d/%02d/%02d %02d:%02d:%02d",
+        tm.tm_year + 1900,
+        tm.tm_mon + 1,
+        tm.tm_mday,
+        tm.tm_hour,
+        tm.tm_min,
+        tm.tm_sec
+      );
+  }
+
+  nvgBeginPath(s->vg);
+  nvgRoundedRect(s->vg, rect_x + sidebar_offset, rect_y, rect_w, rect_h, 15);
+  nvgFillColor(s->vg, nvgRGBA(0, 0, 0, 100));
+  nvgFill(s->vg);
+
+  nvgFontSize(s->vg, 40);
+  nvgFontFace(s->vg, "courbd");
+  nvgFillColor(s->vg, nvgRGBA(255, 255, 255, 175));
+  nvgText(s->vg, rect_x + 720 + sidebar_offset, rect_y + 35, infobar, NULL);
+}
+
+//BB START: functions added for the display of various items
+static int bb_ui_draw_measure(UIState *s,  const char* bb_value, const char* bb_uom, const char* bb_label,
+    int bb_x, int bb_y, int bb_uom_dx,
+    NVGcolor bb_valueColor, NVGcolor bb_labelColor, NVGcolor bb_uomColor,
+    int bb_valueFontSize, int bb_labelFontSize, int bb_uomFontSize ) {
+  const UIScene *scene = &s->scene;
+  nvgTextAlign(s->vg, NVG_ALIGN_CENTER | NVG_ALIGN_BASELINE);
+  int dx = 0;
+  if (strlen(bb_uom) > 0) {
+    dx = (int)(bb_uomFontSize*2.5/2);
+  }
+  //print value
+  nvgFontFace(s->vg, "sans-semibold");
+  nvgFontSize(s->vg, bb_valueFontSize*2.5);
+  nvgFillColor(s->vg, bb_valueColor);
+  nvgText(s->vg, bb_x-dx/2, bb_y+ (int)(bb_valueFontSize*2.5)+5, bb_value, NULL);
+  //print label
+  nvgFontFace(s->vg, "sans-regular");
+  nvgFontSize(s->vg, bb_labelFontSize*2.5);
+  nvgFillColor(s->vg, bb_labelColor);
+  nvgText(s->vg, bb_x, bb_y + (int)(bb_valueFontSize*2.5)+5 + (int)(bb_labelFontSize*2.5)+5, bb_label, NULL);
+  //print uom
+  if (strlen(bb_uom) > 0) {
+    nvgSave(s->vg);
+    int rx =bb_x + bb_uom_dx + bb_valueFontSize -3;
+    int ry = bb_y + (int)(bb_valueFontSize*2.5/2)+25;
+    nvgTranslate(s->vg,rx,ry);
+    nvgRotate(s->vg, -1.5708); //-90deg in radians
+    nvgFontFace(s->vg, "sans-regular");
+    nvgFontSize(s->vg, (int)(bb_uomFontSize*2.5));
+    nvgFillColor(s->vg, bb_uomColor);
+    nvgText(s->vg, 0, 0, bb_uom, NULL);
+    nvgRestore(s->vg);
+  }
+  return (int)((bb_valueFontSize + bb_labelFontSize)*2.5) + 5;
+}
+
+static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) {
+  const UIScene *scene = &s->scene;
+  int bb_rx = bb_x + (int)(bb_w/2);
+  int bb_ry = bb_y;
+  int bb_h = 5;
+  NVGcolor lab_color = nvgRGBA(255, 255, 255, 200);
+  NVGcolor uom_color = nvgRGBA(255, 255, 255, 200);
+  int value_fontSize=30;
+  int label_fontSize=15;
+  int uom_fontSize = 15;
+  int bb_uom_dx =  (int)(bb_w /2 - uom_fontSize*2.5) ;
+
+  //add visual radar relative distance
+  if (true) {
+    char val_str[16];
+    char uom_str[6];
+    NVGcolor val_color = nvgRGBA(255, 255, 255, 200);
+    if (scene->lead_status) {
+      //show RED if less than 5 meters
+      //show orange if less than 15 meters
+      if((int)(scene->lead_d_rel) < 15) {
+        val_color = nvgRGBA(255, 188, 3, 200);
+      }
+      if((int)(scene->lead_d_rel) < 5) {
+        val_color = nvgRGBA(255, 0, 0, 200);
+      }
+      // lead car relative distance is always in meters
+      snprintf(val_str, sizeof(val_str), "%d", (int)scene->lead_d_rel);
+    } else {
+       snprintf(val_str, sizeof(val_str), "-");
+    }
+    snprintf(uom_str, sizeof(uom_str), "m   ");
+    bb_h +=bb_ui_draw_measure(s,  val_str, uom_str, "REL DIST",
+        bb_rx, bb_ry, bb_uom_dx,
+        val_color, lab_color, uom_color,
+        value_fontSize, label_fontSize, uom_fontSize );
+    bb_ry = bb_y + bb_h;
+  }
+
+  //add visual radar relative speed
+  if (true) {
+    char val_str[16];
+    char uom_str[6];
+    NVGcolor val_color = nvgRGBA(255, 255, 255, 200);
+    if (scene->lead_status) {
+      //show Orange if negative speed (approaching)
+      //show Orange if negative speed faster than 5mph (approaching fast)
+      if((int)(scene->lead_v_rel) < 0) {
+        val_color = nvgRGBA(255, 188, 3, 200);
+      }
+      if((int)(scene->lead_v_rel) < -5) {
+        val_color = nvgRGBA(255, 0, 0, 200);
+      }
+      // lead car relative speed is always in meters
+      if (s->is_metric) {
+         snprintf(val_str, sizeof(val_str), "%d", (int)(scene->lead_v_rel * 3.6 + 0.5));
+      } else {
+         snprintf(val_str, sizeof(val_str), "%d", (int)(scene->lead_v_rel * 2.2374144 + 0.5));
+      }
+    } else {
+       snprintf(val_str, sizeof(val_str), "-");
+    }
+    if (s->is_metric) {
+      snprintf(uom_str, sizeof(uom_str), "km/h");;
+    } else {
+      snprintf(uom_str, sizeof(uom_str), "mph");
+    }
+    bb_h +=bb_ui_draw_measure(s,  val_str, uom_str, "REL SPEED",
+        bb_rx, bb_ry, bb_uom_dx,
+        val_color, lab_color, uom_color,
+        value_fontSize, label_fontSize, uom_fontSize );
+    bb_ry = bb_y + bb_h;
+  }
+
+  //finally draw the frame
+  bb_h += 20;
+  nvgBeginPath(s->vg);
+    nvgRoundedRect(s->vg, bb_x, bb_y, bb_w, bb_h, 20);
+    nvgStrokeColor(s->vg, nvgRGBA(255,255,255,80));
+    nvgStrokeWidth(s->vg, 6);
+    nvgStroke(s->vg);
+}
+
+static void bb_ui_draw_measures_right(UIState *s, int bb_x, int bb_y, int bb_w ) {
+  const UIScene *scene = &s->scene;
+  int bb_rx = bb_x + (int)(bb_w/2);
+  int bb_ry = bb_y;
+  int bb_h = 5;
+  NVGcolor lab_color = nvgRGBA(255, 255, 255, 200);
+  NVGcolor uom_color = nvgRGBA(255, 255, 255, 200);
+  int value_fontSize=30;
+  int label_fontSize=15;
+  int uom_fontSize = 15;
+  int bb_uom_dx =  (int)(bb_w /2 - uom_fontSize*2.5) ;
+
+  //add  steering angle
+  if (true) {
+    char val_str[16];
+    char uom_str[6];
+    NVGcolor val_color = nvgRGBA(255, 255, 255, 200);
+      //show Orange if more than 6 degrees
+      //show red if  more than 12 degrees
+      if(((int)(scene->angleSteers) < -6) || ((int)(scene->angleSteers) > 6)) {
+        val_color = nvgRGBA(255, 188, 3, 200);
+      }
+      if(((int)(scene->angleSteers) < -12) || ((int)(scene->angleSteers) > 12)) {
+        val_color = nvgRGBA(255, 0, 0, 200);
+      }
+      // steering is in degrees
+      snprintf(val_str, sizeof(val_str), "%.0f°",(scene->angleSteers));
+
+      snprintf(uom_str, sizeof(uom_str), "");
+    bb_h +=bb_ui_draw_measure(s,  val_str, uom_str, "REAL STEER",
+      bb_rx, bb_ry, bb_uom_dx,
+      val_color, lab_color, uom_color,
+      value_fontSize, label_fontSize, uom_fontSize );
+    bb_ry = bb_y + bb_h;
+  }
+
+  //add  desired steering angle
+  if (true) {
+    char val_str[16];
+    char uom_str[6];
+    NVGcolor val_color = nvgRGBA(255, 255, 255, 200);
+    //show Orange if more than 6 degrees
+    //show red if  more than 12 degrees
+    if(((int)(scene->angleSteersDes) < -6) || ((int)(scene->angleSteersDes) > 6)) {
+      val_color = nvgRGBA(255, 188, 3, 200);
+    }
+    if(((int)(scene->angleSteersDes) < -12) || ((int)(scene->angleSteersDes) > 12)) {
+      val_color = nvgRGBA(255, 0, 0, 200);
+    }
+    // steering is in degrees
+    snprintf(val_str, sizeof(val_str), "%.0f°",(scene->angleSteersDes));
+
+    snprintf(uom_str, sizeof(uom_str), "");
+    bb_h +=bb_ui_draw_measure(s,  val_str, uom_str, "DESIR STEER",
+      bb_rx, bb_ry, bb_uom_dx,
+      val_color, lab_color, uom_color,
+      value_fontSize, label_fontSize, uom_fontSize );
+    bb_ry = bb_y + bb_h;
+  }
+
+  //finally draw the frame
+  bb_h += 20;
+  nvgBeginPath(s->vg);
+    nvgRoundedRect(s->vg, bb_x, bb_y, bb_w, bb_h, 20);
+    nvgStrokeColor(s->vg, nvgRGBA(255,255,255,80));
+    nvgStrokeWidth(s->vg, 6);
+    nvgStroke(s->vg);
+}
+
+static void ui_draw_bbui(UIState *s) {
+    const UIScene *scene = &s->scene;
+    const int bb_dml_w = 180;
+    const int bb_dml_x = (scene->ui_viz_rx + (bdr_is * 2));
+    const int bb_dml_y = (box_y + (bdr_is * 1.5)) + 220;
+
+    const int bb_dmr_w = 180;
+    const int bb_dmr_x = scene->ui_viz_rx + scene->ui_viz_rw - bb_dmr_w - (bdr_is * 2);
+    const int bb_dmr_y = (box_y + (bdr_is * 1.5)) + 220;
+
+    bb_ui_draw_measures_right(s, bb_dml_x, bb_dml_y, bb_dml_w);
+    bb_ui_draw_measures_left(s, bb_dmr_x, bb_dmr_y, bb_dmr_w);
 }
 
 static void ui_draw_vision_footer(UIState *s) {
@@ -1412,11 +1741,19 @@ static void ui_draw_vision_footer(UIState *s) {
   nvgBeginPath(s->vg);
   nvgRect(s->vg, ui_viz_rx, footer_y, ui_viz_rw, footer_h);
 
-  ui_draw_vision_face(s);
+  if (s->dragon_ui_face) {
+    ui_draw_vision_face(s);
+  }
 
 #ifdef SHOW_SPEEDLIMIT
   // ui_draw_vision_map(s);
 #endif
+  if (s->dragon_ui_dev) {
+    ui_draw_bbui(s);
+  }
+  if (s->dragon_ui_dev_mini || s->dragon_enable_dashcam) {
+    ui_draw_infobar(s);
+  }
 }
 
 static void ui_draw_vision_alert(UIState *s, int va_size, int va_color,
@@ -1451,23 +1788,23 @@ static void ui_draw_vision_alert(UIState *s, int va_size, int va_color,
   nvgTextAlign(s->vg, NVG_ALIGN_CENTER | NVG_ALIGN_BASELINE);
 
   if (va_size == ALERTSIZE_SMALL) {
-    nvgFontFace(s->vg, "sans-semibold");
+    nvgFontFace(s->vg, "miui-bold");
     nvgFontSize(s->vg, 40*2.5);
     nvgText(s->vg, alr_x+alr_w/2, alr_y+alr_h/2+15, va_text1, NULL);
   } else if (va_size== ALERTSIZE_MID) {
-    nvgFontFace(s->vg, "sans-bold");
+    nvgFontFace(s->vg, "miui-bold");
     nvgFontSize(s->vg, 48*2.5);
     nvgText(s->vg, alr_x+alr_w/2, alr_y+alr_h/2-45, va_text1, NULL);
-    nvgFontFace(s->vg, "sans-regular");
+    nvgFontFace(s->vg, "miui-regular");
     nvgFontSize(s->vg, 36*2.5);
     nvgText(s->vg, alr_x+alr_w/2, alr_y+alr_h/2+75, va_text2, NULL);
   } else if (va_size== ALERTSIZE_FULL) {
     nvgFontSize(s->vg, (longAlert1?72:96)*2.5);
-    nvgFontFace(s->vg, "sans-bold");
+    nvgFontFace(s->vg, "miui-bold");
     nvgTextAlign(s->vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
     nvgTextBox(s->vg, alr_x, alr_y+(longAlert1?360:420), alr_w-60, va_text1, NULL);
     nvgFontSize(s->vg, 48*2.5);
-    nvgFontFace(s->vg, "sans-regular");
+    nvgFontFace(s->vg, "miui-regular");
     nvgTextAlign(s->vg, NVG_ALIGN_CENTER | NVG_ALIGN_BOTTOM);
     nvgTextBox(s->vg, alr_x, alr_h-(longAlert1?300:360), alr_w-60, va_text2, NULL);
   }
@@ -1635,6 +1972,9 @@ void handle_message(UIState *s, void *which) {
     s->scene.decel_for_model = datad.decelForModel;
 
     s->alert_sound_timeout = 1 * UI_FREQ;
+
+    s->scene.angleSteers = datad.angleSteers;
+    s->scene.angleSteersDes = datad.angleSteersDes;
 
     if (datad.alertSound != cereal_CarControl_HUDControl_AudibleAlert_none && datad.alertSound != s->alert_sound) {
       char* error = NULL;
@@ -2330,6 +2670,13 @@ int main(int argc, char* argv[]) {
     read_param_bool_timeout(&s->longitudinal_control, "LongitudinalControl", &s->longitudinal_control_timeout);
     read_param_bool_timeout(&s->limit_set_speed, "LimitSetSpeed", &s->limit_set_speed_timeout);
     read_param_float_timeout(&s->speed_lim_off, "SpeedLimitOffset", &s->limit_set_speed_timeout);
+    // dragonpilot
+    read_param_bool_timeout(&s->dragon_ui_event, "DragonUIEvent", &s->dragon_ui_event_timeout);
+    read_param_bool_timeout(&s->dragon_ui_maxspeed, "DragonUIMaxSpeed", &s->dragon_ui_maxspeed_timeout);
+    read_param_bool_timeout(&s->dragon_ui_face, "DragonUIFace", &s->dragon_ui_face_timeout);
+    read_param_bool_timeout(&s->dragon_ui_dev, "DragonUIDev", &s->dragon_ui_dev_timeout);
+    read_param_bool_timeout(&s->dragon_ui_dev_mini, "DragonUIDevMini", &s->dragon_ui_dev_mini_timeout);
+    read_param_bool_timeout(&s->dragon_enable_dashcam, "DragonEnableDashcam", &s->dragon_enable_dashcam_timeout);
 
     pthread_mutex_unlock(&s->lock);
 

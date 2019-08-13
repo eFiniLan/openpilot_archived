@@ -2,6 +2,8 @@ import numpy as np
 from common.realtime import sec_since_boot, DT_CTRL, DT_DMON
 from selfdrive.controls.lib.drive_helpers import create_event, EventTypes as ET
 from common.filter_simple import FirstOrderFilter
+from common.params import Params
+params = Params()
 
 _AWARENESS_TIME = 90.        # 1.5 minutes limit without user touching steering wheels make the car enter a terminal status
 _AWARENESS_PRE_TIME_TILL_TERMINAL = 20.    # a first alert is issued 20s before expiration
@@ -93,6 +95,10 @@ class DriverStatus():
     self.step_change = 0.
     self._set_timers(self.monitor_on)
 
+    # dragonpilot
+    self.dp_last_check = 0.
+    self.dragon_enable_driver_safety_check = True
+
   def _reset_filters(self):
     self.driver_distraction_filter.x = 0.
     self.variance_filter.x = 0.
@@ -122,7 +128,7 @@ class DriverStatus():
     pose_metric = np.sqrt(yaw_error**2 + pitch_error**2)
 
     if pose_metric > _METRIC_THRESHOLD:
-      return DistractedType.BAD_POSE 
+      return DistractedType.BAD_POSE
     elif blink.left_blink>_BLINK_THRESHOLD and blink.right_blink>_BLINK_THRESHOLD:
       return DistractedType.BAD_BLINK
     else:
@@ -161,6 +167,12 @@ class DriverStatus():
       self.awareness = 1.
       return events
 
+    # don't check for param too often as it's a kernel call
+    ts = sec_since_boot()
+    if ts - self.dp_last_check > 1.:
+      self.dragon_enable_driver_safety_check = False if params.get("DragonEnableDriverSafetyCheck") == "0" else True
+      self.dp_last_check = ts
+
     driver_engaged |= (self.driver_distraction_filter.x < 0.37 and self.monitor_on)
     awareness_prev = self.awareness
 
@@ -185,8 +197,7 @@ class DriverStatus():
     elif self.awareness <= self.threshold_pre:
       # pre green alert
       alert = 'preDriverDistracted' if self.monitor_on else 'preDriverUnresponsive'
-
-    if alert is not None:
+    if alert is not None and self.dragon_enable_driver_safety_check:
       events.append(create_event(alert, [ET.WARNING]))
 
     return events

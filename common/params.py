@@ -82,6 +82,31 @@ keys = {
   "TermsVersion": [TxType.PERSISTENT],
   "TrainingVersion": [TxType.PERSISTENT],
   "Version": [TxType.PERSISTENT],
+  #dragonpilot config
+  "DragonEnableDashcam": [TxType.PERSISTENT],
+  "DragonDisableDriverSafetyCheck": [TxType.PERSISTENT], # deprecated
+  "DragonEnableDriverSafetyCheck": [TxType.PERSISTENT],
+  "DragonAutoShutdownAt": [TxType.PERSISTENT],
+  "DragonTempDisableSteerOnSignal": [TxType.PERSISTENT], # deprecated
+  "DragonEnableSteeringOnSignal": [TxType.PERSISTENT],
+  "DragonDisableLogger": [TxType.PERSISTENT], # deprecated
+  "DragonEnableLogger": [TxType.PERSISTENT],
+  "DragonDisableUploader": [TxType.PERSISTENT], # deprecated
+  "DragonEnableUploader": [TxType.PERSISTENT],
+  "DragonNoctuaMode": [TxType.PERSISTENT],
+  "DragonCacheCar": [TxType.PERSISTENT],
+  "DragonCachedModel": [TxType.PERSISTENT],
+  "DragonCachedFP": [TxType.PERSISTENT],
+  "DragonCachedVIN": [TxType.PERSISTENT],
+  "DragonAllowGas": [TxType.PERSISTENT],
+  "DragonBBUI": [TxType.PERSISTENT], # deprecated
+  "DragonToyotaStockDSU": [TxType.PERSISTENT],
+  "DragonLatCtrl": [TxType.PERSISTENT],
+  "DragonUIEvent": [TxType.PERSISTENT],
+  "DragonUIMaxSpeed": [TxType.PERSISTENT],
+  "DragonUIFace": [TxType.PERSISTENT],
+  "DragonUIDev": [TxType.PERSISTENT],
+  "DragonUIDevMini": [TxType.PERSISTENT],
 }
 
 
