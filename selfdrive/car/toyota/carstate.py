@@ -50,16 +50,26 @@ def get_can_parser(CP):
   ]
 
   checks = [
-    ("BRAKE_MODULE", 40),
-    ("GAS_PEDAL", 33),
     ("WHEEL_SPEEDS", 80),
     ("STEER_ANGLE_SENSOR", 80),
-    ("PCM_CRUISE", 33),
     ("STEER_TORQUE_SENSOR", 50),
     ("EPS_STATUS", 25),
   ]
 
-  if CP.carFingerprint == CAR.LEXUS_IS:
+  if CP.carFingerprint == CAR.LEXUS_ISH:
+    checks += [
+      ("BRAKE_MODULE", 50),
+      ("GAS_PEDAL", 50),
+      ("PCM_CRUISE", 1),
+    ]
+  else:
+    checks += [
+      ("BRAKE_MODULE", 40),
+      ("GAS_PEDAL", 33),
+      ("PCM_CRUISE", 33),
+    ]
+
+  if CP.carFingerprint in [CAR.LEXUS_IS, CAR.LEXUS_ISH]:
     signals.append(("MAIN_ON", "DSU_CRUISE", 0))
     signals.append(("SET_SPEED", "DSU_CRUISE", 0))
     checks.append(("DSU_CRUISE", 5))
@@ -167,7 +177,7 @@ class CarState(object):
     self.angle_steers_rate = cp.vl["STEER_ANGLE_SENSOR"]['STEER_RATE']
     can_gear = int(cp.vl["GEAR_PACKET"]['GEAR'])
     self.gear_shifter = parse_gear_shifter(can_gear, self.shifter_values)
-    if self.CP.carFingerprint == CAR.LEXUS_IS:
+    if self.CP.carFingerprint in [CAR.LEXUS_IS, CAR.LEXUS_ISH]:
       self.main_on = cp.vl["DSU_CRUISE"]['MAIN_ON']
     else:
       self.main_on = cp.vl["PCM_CRUISE_2"]['MAIN_ON']
@@ -191,7 +201,11 @@ class CarState(object):
     else:
       self.v_cruise_pcm = cp.vl["PCM_CRUISE_2"]['SET_SPEED']
       self.low_speed_lockout = cp.vl["PCM_CRUISE_2"]['LOW_SPEED_LOCKOUT'] == 2
-    self.pcm_acc_status = cp.vl["PCM_CRUISE"]['CRUISE_STATE']
+    if self.CP.carFingerprint == CAR.LEXUS_ISH:
+      # Lexus ISH does not have curise status value (always 0), so we use curise_active value instead
+      self.pcm_acc_status = cp.vl["PCM_CRUISE"]['CRUISE_ACTIVE']
+    else:
+      self.pcm_acc_status = cp.vl["PCM_CRUISE"]['CRUISE_STATE']
     self.pcm_acc_active = bool(cp.vl["PCM_CRUISE"]['CRUISE_ACTIVE'])
     self.brake_lights = bool(cp.vl["ESP_CONTROL"]['BRAKE_LIGHTS_ACC'] or self.brake_pressed)
     if self.CP.carFingerprint == CAR.PRIUS:
