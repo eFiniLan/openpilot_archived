@@ -6,7 +6,7 @@ import shutil
 from common.basedir import BASEDIR
 from selfdrive.swaglog import cloudlog
 
-android_packages = ("ai.comma.plus.offroad", "ai.comma.plus.frame")
+android_packages = ("cn.dragonpilot.gpsservice", "ai.comma.plus.offroad", "ai.comma.plus.frame")
 
 def get_installed_apks():
   dat = subprocess.check_output(["pm", "list", "packages", "-f"], encoding='utf8').strip().split("\n")

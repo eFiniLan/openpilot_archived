@@ -64,6 +64,7 @@ default_conf = {
   'DragonAssistedLCMinMPH': 37,
   'DragonAutoLCMinMPH': 60,
   'DragonAutoLCDelay': 2,
+  'DragonApps': 0,
 }
 
 deprecated_conf = {

@@ -160,6 +160,7 @@ keys = {
   "DragonAssistedLCMinMPH": [TxType.PERSISTENT],
   "DragonAutoLCMinMPH": [TxType.PERSISTENT],
   "DragonAutoLCDelay": [TxType.PERSISTENT],
+  "DragonApps": [TxType.PERSISTENT],
 }
 
 

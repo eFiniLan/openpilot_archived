@@ -7,6 +7,7 @@ import cereal
 ThermalStatus = cereal.log.ThermalData.ThermalStatus
 from selfdrive.swaglog import cloudlog
 from common.params import Params, put_nonblocking
+from common.dragon_apks import pm_apply_dragon_packages
 params = Params()
 
 # v1.16.2
@@ -40,19 +41,33 @@ offroad_main = ".MainActivity"
 
 def main(gctx=None):
 
-  dragon_enable_tomtom = True if params.get('DragonEnableTomTom', encoding='utf8') == "1" else False
-  dragon_enable_autonavi = True if params.get('DragonEnableAutonavi', encoding='utf8') == "1" else False
-  dragon_enable_aegis = True if params.get('DragonEnableAegis', encoding='utf8') == "1" else False
-  dragon_enable_mixplorer = True if params.get('DragonEnableMixplorer', encoding='utf8') == "1" else False
-  dragon_boot_tomtom = True if params.get("DragonBootTomTom", encoding='utf8') == "1" else False
-  dragon_boot_autonavi = True if params.get("DragonBootAutonavi", encoding='utf8') == "1" else False
-  dragon_boot_aegis = True if params.get("DragonBootAegis", encoding='utf8') == "1" else False
-  dragon_greypanda_mode = True if params.get("DragonGreyPandaMode", encoding='utf8') == "1" else False
-  dragon_waze_mode = True if params.get("DragonWazeMode", encoding='utf8') == "1" else False
-  if dragon_waze_mode:
+  dragon_apps = True if params.get("DragonApps", encoding='utf8') == "1" else False
+  if dragon_apps:
+    dragon_enable_tomtom = True if params.get('DragonEnableTomTom', encoding='utf8') == "1" else False
+    dragon_enable_autonavi = True if params.get('DragonEnableAutonavi', encoding='utf8') == "1" else False
+    dragon_enable_aegis = True if params.get('DragonEnableAegis', encoding='utf8') == "1" else False
+    dragon_enable_mixplorer = True if params.get('DragonEnableMixplorer', encoding='utf8') == "1" else False
+    dragon_boot_tomtom = True if params.get("DragonBootTomTom", encoding='utf8') == "1" else False
+    dragon_boot_autonavi = True if params.get("DragonBootAutonavi", encoding='utf8') == "1" else False
+    dragon_boot_aegis = True if params.get("DragonBootAegis", encoding='utf8') == "1" else False
+    dragon_greypanda_mode = True if params.get("DragonGreyPandaMode", encoding='utf8') == "1" else False
+    dragon_waze_mode = True if params.get("DragonWazeMode", encoding='utf8') == "1" else False
+    if dragon_waze_mode:
+      dragon_enable_tomtom = False
+      dragon_enable_autonavi = False
+      dragon_enable_aegis = False
+  else:
     dragon_enable_tomtom = False
     dragon_enable_autonavi = False
     dragon_enable_aegis = False
+    dragon_enable_mixplorer = False
+    dragon_boot_tomtom = False
+    dragon_boot_autonavi = False
+    dragon_boot_aegis = False
+    dragon_greypanda_mode = False
+    dragon_waze_mode = False
+
+  has_app = dragon_enable_tomtom or dragon_enable_autonavi or dragon_enable_aegis or dragon_enable_mixplorer or dragon_waze_mode
 
   dragon_grepanda_mode_started = False
   tomtom_is_running = False
@@ -76,17 +91,23 @@ def main(gctx=None):
   put_nonblocking('DragonRunAegis', '0')
   put_nonblocking('DragonRunWaze', '0')
 
-  # we want to disable all app when boot
-  system("pm disable %s" % tomtom)
-  system("pm disable %s" % autonavi)
-  system("pm disable %s" % mixplorer)
-  system("pm disable %s" % gpsservice)
-  system("pm disable %s" % aegis)
-  system("pm disable %s" % waze)
+  # system("pm disable %s" % gpsservice)
+  # if dragon_apps:
+  #   pm_apply_dragon_packages('disable')
+  # else:
+  #   pm_apply_dragon_packages
+  #   action = 'uninstall'
+  # # we want to disable all app when boot
+  #
+  # system("pm %s %s" % (action, tomtom))
+  # system("pm %s %s" % (action, autonavi))
+  # system("pm %s %s" % (action, mixplorer))
+  # system("pm %s %s" % (action, aegis))
+  # system("pm %s %s" % (action, waze))
 
   thermal_sock = messaging.sub_sock('thermal')
 
-  while dragon_enable_tomtom or dragon_enable_autonavi or dragon_enable_aegis or dragon_enable_mixplorer or dragon_greypanda_mode or dragon_waze_mode:
+  while has_app or dragon_greypanda_mode:
 
     # allow user to manually start/stop app
     if dragon_enable_tomtom:

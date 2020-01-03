@@ -116,6 +116,7 @@ from selfdrive.loggerd.config import ROOT
 from selfdrive.launcher import launcher
 from common import android
 from common.apk import update_apks, pm_apply_packages, start_frame
+from common.dragon_apks import update_dragon_apks
 
 ThermalStatus = cereal.log.ThermalData.ThermalStatus
 
@@ -490,6 +491,7 @@ def main():
     raise Exception("Passive must be set to continue")
 
   update_apks()
+  update_dragon_apks()
   manager_init()
   manager_prepare(spinner)
   spinner.close()

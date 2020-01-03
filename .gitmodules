@@ -1,0 +1,3 @@
+[submodule "dragon_apk"]
+	path = dragon_apk
+	url = https://github.com/dragonpilot-community/dragonpilot-apps.git
