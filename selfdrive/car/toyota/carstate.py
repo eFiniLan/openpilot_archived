@@ -104,6 +104,16 @@ class CarState(CarStateBase):
     self.steer_state = cp.vl["EPS_STATUS"]['LKA_STATE']
     self.steer_warning = cp.vl["EPS_STATUS"]['LKA_STATE'] not in [1, 5]
 
+    if ret.cruiseState.available:
+      enable_acc = True
+      if ret.seatbeltUnlatched or ret.doorOpen:
+        enable_acc = False
+      if ret.gearShifter in [car.CarState.GearShifter.reverse, car.CarState.GearShifter.park]:
+        enable_acc = False
+      if ret.vEgo <= 0.1:
+        enable_acc = False
+      ret.cruiseState.enabled = enable_acc
+
     return ret
 
   @staticmethod

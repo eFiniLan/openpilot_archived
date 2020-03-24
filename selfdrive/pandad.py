@@ -9,7 +9,7 @@ from panda import Panda, PandaDFU, BASEDIR, build_st
 
 def get_firmware_fn():
   signed_fn = os.path.join(BASEDIR, "board", "obj", "panda.bin.signed")
-  if os.path.exists(signed_fn):
+  if False: #os.path.exists(signed_fn):
     cloudlog.info("Using prebuilt signed firmware")
     return signed_fn
   else:
