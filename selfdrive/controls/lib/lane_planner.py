@@ -1,9 +1,8 @@
-from common.op_params import opParams
 from common.numpy_fast import interp
 import numpy as np
 from cereal import log
 
-op_params = opParams()
+CAMERA_OFFSET = 0.06  # m from center car to camera
 
 
 def compute_path_pinv(l=50):
@@ -84,7 +83,6 @@ class LanePlanner():
 
   def update_d_poly(self, v_ego):
     # only offset left and right lane lines; offsetting p_poly does not make sense
-    CAMERA_OFFSET = op_params.get('camera_offset', 0.06)
     self.l_poly[3] += CAMERA_OFFSET
     self.r_poly[3] += CAMERA_OFFSET
 
