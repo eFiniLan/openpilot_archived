@@ -486,7 +486,7 @@ def controlsd_thread(sm=None, pm=None, can_sock=None, sm_smiskol=None):
                               'model'])
 
   if sm_smiskol is None:
-    sm_smiskol = messaging.SubMaster(['radarState', 'dynamicFollowData', 'liveTracks', 'dynamicFollowButton'])
+    sm_smiskol = messaging.SubMaster(['radarState', 'dynamicFollowData', 'liveTracks'])
 
   if can_sock is None:
     can_timeout = None if os.environ.get('NO_CAN_TIMEOUT', False) else 100

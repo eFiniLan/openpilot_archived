@@ -18,7 +18,7 @@ class dfManager:
     self.op_params = op_params
     self.is_df = is_df
     self.df_profiles = dfProfiles()
-    self.sm = messaging.SubMaster(['dynamicFollowButton', 'dynamicFollowData'])
+    self.sm = messaging.SubMaster(['dynamicFollowData'])
 
     self.cur_user_profile = self.op_params.get('dynamic_follow', default='auto').strip().lower()
     if not isinstance(self.cur_user_profile, str) or self.cur_user_profile not in self.df_profiles.to_idx:
@@ -50,7 +50,8 @@ class dfManager:
       df_out.changed = True  # to show alert on start
       self.first_run = False
 
-    button_status = self.sm['dynamicFollowButton'].status
+    # @TODO change to read param
+    #button_status = self.sm['dynamicFollowButton'].status
     df_out.user_profile = (button_status + self.offset) % len(self.df_profiles.to_profile)
     df_out.user_profile_text = self.df_profiles.to_profile[df_out.user_profile]
 

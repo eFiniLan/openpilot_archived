@@ -1974,10 +1974,6 @@ struct DynamicFollowData {
   profilePred @1 :UInt16;
 }
 
-struct DynamicFollowButton {
-  status @0 :UInt16;
-}
-
 struct Event {
   # in nanoseconds?
   logMonoTime @0 :UInt64;
@@ -2058,6 +2054,5 @@ struct Event {
     sentinel @73 :Sentinel;
 
     dynamicFollowData @74 :DynamicFollowData;
-    dynamicFollowButton @75 :DynamicFollowButton;
   }
 }
