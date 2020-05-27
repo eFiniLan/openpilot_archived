@@ -14,13 +14,12 @@ class dfReturn:
 
 
 class dfManager:
-  def __init__(self, op_params, is_df=False):
-    self.op_params = op_params
+  def __init__(self, is_df=False):
     self.is_df = is_df
     self.df_profiles = dfProfiles()
     self.sm = messaging.SubMaster(['dynamicFollowData'])
 
-    self.cur_user_profile = self.op_params.get('dynamic_follow', default='auto').strip().lower()
+    self.cur_user_profile = 'auto' #self.op_params.get('dynamic_follow', default='auto').strip().lower()
     if not isinstance(self.cur_user_profile, str) or self.cur_user_profile not in self.df_profiles.to_idx:
       self.cur_user_profile = self.df_profiles.default  # relaxed
     else:
@@ -59,7 +58,7 @@ class dfManager:
       self.change_time = sec_since_boot()
       self.last_is_auto = False
       df_out.changed = True
-      self.op_params.put('dynamic_follow', self.df_profiles.to_profile[df_out.user_profile])  # save current profile for next drive
+      #self.op_params.put('dynamic_follow', self.df_profiles.to_profile[df_out.user_profile])  # save current profile for next drive
       self.cur_user_profile = df_out.user_profile
 
     if self.is_auto:

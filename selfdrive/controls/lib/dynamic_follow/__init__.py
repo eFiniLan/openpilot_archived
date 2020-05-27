@@ -16,9 +16,8 @@ travis = False
 class DynamicFollow:
   def __init__(self, mpc_id):
     self.mpc_id = mpc_id
-    self.op_params = opParams()
     self.df_profiles = dfProfiles()
-    self.df_manager = dfManager(self.op_params)
+    self.df_manager = dfManager()
 
     if not travis and mpc_id == 1:
       self.pm = messaging.PubMaster(['dynamicFollowData'])
@@ -311,6 +310,6 @@ class DynamicFollow:
     self.car_data.cruise_enabled = CS.cruiseState.enabled
 
   def _get_live_params(self):
-    self.global_df_mod = self.op_params.get('global_df_mod', None)
+    self.global_df_mod = None #self.op_params.get('global_df_mod', None)
     if self.global_df_mod is not None:
       self.global_df_mod = np.clip(self.global_df_mod, 0.7, 1.1)

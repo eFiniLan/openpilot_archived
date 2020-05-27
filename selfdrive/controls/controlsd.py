@@ -11,6 +11,7 @@ import cereal.messaging as messaging
 from selfdrive.config import Conversions as CV
 from selfdrive.boardd.boardd import can_list_to_can_capnp
 from selfdrive.car.car_helpers import get_car, get_startup_alert
+from selfdrive.controls.lib.lane_planner import CAMERA_OFFSET
 from selfdrive.controls.lib.drive_helpers import get_events, \
                                                  create_event, \
                                                  EventTypes as ET, \
@@ -25,7 +26,6 @@ from selfdrive.controls.lib.vehicle_model import VehicleModel
 from selfdrive.controls.lib.planner import LON_MPC_STEP
 from selfdrive.locationd.calibration_helpers import Calibration, Filter
 from selfdrive.controls.lib.dynamic_follow.df_manager import dfManager
-from common.op_params import opParams
 
 LANE_DEPARTURE_THRESHOLD = 0.1
 STEER_ANGLE_SATURATION_TIMEOUT = 1.0 / DT_CTRL
@@ -38,10 +38,7 @@ HwType = log.HealthData.HwType
 LaneChangeState = log.PathPlan.LaneChangeState
 LaneChangeDirection = log.PathPlan.LaneChangeDirection
 
-op_params = opParams()
-df_manager = dfManager(op_params)
-hide_auto_df_alerts = op_params.get('hide_auto_df_alerts', False)
-
+df_manager = dfManager()
 
 def add_lane_change_event(events, path_plan):
   if path_plan.laneChangeState == LaneChangeState.preLaneChange:
@@ -155,16 +152,6 @@ def state_transition(frame, CS, CP, state, events, soft_disable_timer, v_cruise_
   # decrease the soft disable timer at every step, as it's reset on
   # entrance in SOFT_DISABLING state
   soft_disable_timer = max(0, soft_disable_timer - 1)
-
-  df_out = df_manager.update()
-  if df_out.changed:
-    df_alert = 'dfButtonAlert'
-    if df_out.is_auto and df_out.last_is_auto and not hide_auto_df_alerts:
-      if CS.cruiseState.enabled:
-        df_alert += 'NoSound'
-        AM.add(frame, df_alert, enabled, extra_text_1=df_out.model_profile_text + ' (auto)', extra_text_2='Dynamic follow: {} profile active'.format(df_out.model_profile_text))
-    else:
-      AM.add(frame, df_alert, enabled, extra_text_1=df_out.user_profile_text, extra_text_2='Dynamic follow: {} profile active'.format(df_out.user_profile_text))
 
   # DISABLED
   if state == State.disabled:
@@ -354,7 +341,6 @@ def data_send(sm, pm, CS, CI, CP, VM, state, events, actuators, v_cruise_kph, rk
     l_lane_change_prob = md.meta.desirePrediction[log.PathPlan.Desire.laneChangeLeft - 1]
     r_lane_change_prob = md.meta.desirePrediction[log.PathPlan.Desire.laneChangeRight - 1]
 
-    CAMERA_OFFSET = op_params.get('camera_offset', 0.06)
     l_lane_close = left_lane_visible and (sm['pathPlan'].lPoly[3] < (1.08 - CAMERA_OFFSET))
     r_lane_close = right_lane_visible and (sm['pathPlan'].rPoly[3] > -(1.08 + CAMERA_OFFSET))
 
@@ -498,7 +484,7 @@ def controlsd_thread(sm=None, pm=None, can_sock=None, sm_smiskol=None):
   print("Waiting for CAN messages...")
   messaging.get_one_can(can_sock)
 
-  CI, CP, candidate = get_car(can_sock, pm.sock['sendcan'], has_relay)
+  CI, CP = get_car(can_sock, pm.sock['sendcan'], has_relay)
 
   car_recognized = CP.carName != 'mock'
   # If stock camera is disconnected, we loaded car controls and it's not chffrplus
@@ -520,7 +506,7 @@ def controlsd_thread(sm=None, pm=None, can_sock=None, sm_smiskol=None):
   startup_alert = get_startup_alert(car_recognized, controller_available)
   AM.add(sm.frame, startup_alert, False)
 
-  LoC = LongControl(CP, CI.compute_gb, candidate)
+  LoC = LongControl(CP, CI.compute_gb)
   VM = VehicleModel(CP)
 
   if CP.lateralTuning.which() == 'pid':
