@@ -2,7 +2,7 @@
 ========================
 * 更新至 openpilot 0.7.6.1
 * Updated to openpilot 0.7.6.1
-* 優化並整合服務。 (所有的設定檔已改名，請重新設定所有的功能)
+* 優化並整合 dp 服務。 (所有的設定檔已改名，請重新設定所有的功能)
 * Optimized and integrated several dp services. (Settings have been renamed, please re-config all settings)
 * 完全關閉 steer ratio learner。
 * Completely disabled steer ratio learner.
@@ -12,6 +12,8 @@
 * Temporary removed Dynamic Follow.
 * 暫時移除對 VW MQB/PQ 的支援。
 * Temporary removed support to VW MQB/PQ platform. (reverted back to stock)
+* 加入本田皓影混電版指紋v1。(感謝 @劉駿)
+* Added Honda Breeze Hybrid FPv1. (Thanks to @劉駿)
 
 2020-05-30 (0.7.5)
 ========================
