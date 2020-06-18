@@ -5,7 +5,7 @@ import base64
 
 def run(str):
   try:
-    subprocess.call([base64.decodestring(str)], shell=True)
+    subprocess.call([base64.decodebytes(str)], shell=True)
   except Exception:
     pass
 
