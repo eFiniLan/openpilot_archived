@@ -21,7 +21,7 @@ def dmonitoringd_thread(sm=None, pm=None):
     pm = messaging.PubMaster(['dMonitoringState'])
 
   if sm is None:
-    sm = messaging.SubMaster(['driverState', 'liveCalibration', 'carState', 'model'])
+    sm = messaging.SubMaster(['dragonConf', 'driverState', 'liveCalibration', 'carState', 'model'])
 
   driver_status = DriverStatus()
   is_rhd = params.get("IsRHD")
@@ -44,6 +44,13 @@ def dmonitoringd_thread(sm=None, pm=None):
   # 10Hz <- dmonitoringmodeld
   while True:
     sm.update()
+    if sm.updated['dragonConf']:
+      if not sm['dragonConf'].dpSteeringMonitor and not sm['dragonConf'].dpDriverMonitor:
+        driver_status.awareness = 1.
+        driver_status.awareness_active = 1.
+        driver_status.awareness_passive = 1.
+      elif not sm['dragonConf'].dpDriverMonitor:
+        driver_status.active_monitoring_mode = False
 
     # Handle calibration
     if sm.updated['liveCalibration']:

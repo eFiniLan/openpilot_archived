@@ -3,6 +3,7 @@ from selfdrive.car.volkswagen.values import CAR, BUTTON_STATES
 from common.params import put_nonblocking
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint
 from selfdrive.car.interfaces import CarInterfaceBase
+from common.dp_common import common_interface_update
 
 GEAR = car.CarState.GearShifter
 EventName = car.CarEvent.EventName
@@ -63,7 +64,7 @@ class CarInterface(CarInterfaceBase):
     return ret
 
   # returns a car.CarState
-  def update(self, c, can_strings):
+  def update(self, c, can_strings, dragonconf):
     canMonoTimes = []
     buttonEvents = []
 
@@ -74,6 +75,9 @@ class CarInterface(CarInterfaceBase):
     self.cp_cam.update_strings(can_strings)
 
     ret = self.CS.update(self.cp)
+    # dp
+    self.dragonconf = dragonconf
+    ret = common_interface_update(ret) if dragonconf.dpAtl else ret
     ret.canValid = self.cp.can_valid and self.cp_cam.can_valid
     ret.steeringRateLimited = self.CC.steer_rate_limited if self.CC is not None else False
 
@@ -115,6 +119,6 @@ class CarInterface(CarInterfaceBase):
                    c.hudControl.visualAlert,
                    c.hudControl.audibleAlert,
                    c.hudControl.leftLaneVisible,
-                   c.hudControl.rightLaneVisible)
+                   c.hudControl.rightLaneVisible, self.dragonconf)
     self.frame += 1
     return can_sends

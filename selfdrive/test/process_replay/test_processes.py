@@ -13,8 +13,8 @@ from tools.lib.logreader import LogReader
 INJECT_MODEL = 0
 
 segments = [
-  ("HONDA", "0375fdf7b1ce594d|2019-06-13--08-32-25--3"),      # HONDA.ACCORD
-  ("HONDA", "99c94dc769b5d96e|2019-08-03--14-19-59--2"),      # HONDA.CIVIC
+  # ("HONDA", "0375fdf7b1ce594d|2019-06-13--08-32-25--3"),      # HONDA.ACCORD
+  # ("HONDA", "99c94dc769b5d96e|2019-08-03--14-19-59--2"),      # HONDA.CIVIC
   ("TOYOTA", "77611a1fac303767|2020-02-29--13-29-33--3"),     # TOYOTA.COROLLA_TSS2
   ("GM", "7cc2a8365b4dd8a9|2018-12-02--12-10-44--2"),         # GM.ACADIA
   ("CHRYSLER", "b6849f5cf2c926b1|2020-02-28--07-29-48--13"),  # CHRYSLER.PACIFICA
@@ -29,7 +29,7 @@ segments = [
 ]
 
 # ford doesn't need to be tested until a full port is done
-excluded_interfaces = ["mock", "ford", "mazda"]
+excluded_interfaces = ["mock", "ford", "mazda", "honda"]
 
 BASE_URL = "https://commadataci.blob.core.windows.net/openpilotci/"
 

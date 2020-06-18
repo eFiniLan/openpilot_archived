@@ -7,6 +7,7 @@ from selfdrive.car import create_gas_command
 from selfdrive.car.honda import hondacan
 from selfdrive.car.honda.values import CruiseButtons, CAR, VISUAL_HUD
 from opendbc.can.packer import CANPacker
+from common.dp_common import common_controller_ctrl
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 
@@ -72,7 +73,7 @@ def process_hud_alert(hud_alert):
 
 HUDData = namedtuple("HUDData",
                      ["pcm_accel", "v_cruise",  "car",
-                     "lanes", "fcw", "acc_alert", "steer_required"])
+                      "lanes", "fcw", "acc_alert", "steer_required", "dashed_lanes"])
 
 class CarControllerParams():
   def __init__(self, CP):
@@ -96,9 +97,13 @@ class CarController():
 
     self.params = CarControllerParams(CP)
 
+    # dp
+    self.last_blinker_on = False
+    self.blinker_end_frame = 0.
+
   def update(self, enabled, CS, frame, actuators, \
              pcm_speed, pcm_override, pcm_cancel_cmd, pcm_accel, \
-             hud_v_cruise, hud_show_lanes, hud_show_car, hud_alert):
+             hud_v_cruise, hud_show_lanes, dragonconf, hud_show_car, hud_alert):
 
     P = self.params
 
@@ -114,7 +119,7 @@ class CarController():
     self.brake_last = rate_limit(brake, self.brake_last, -2., DT_CTRL)
 
     # vehicle hud display, wait for one update from 10Hz 0x304 msg
-    if hud_show_lanes:
+    if hud_show_lanes and CS.lkMode:
       hud_lanes = 1
     else:
       hud_lanes = 0
@@ -130,7 +135,7 @@ class CarController():
     fcw_display, steer_required, acc_alert = process_hud_alert(hud_alert)
 
     hud = HUDData(int(pcm_accel), int(round(hud_v_cruise)), hud_car,
-                  hud_lanes, fcw_display, acc_alert, steer_required)
+                  hud_lanes, fcw_display, acc_alert, steer_required, CS.lkMode)
 
     # **** process the car messages ****
 
@@ -139,10 +144,23 @@ class CarController():
     apply_brake = int(clip(self.brake_last * P.BRAKE_MAX, 0, P.BRAKE_MAX - 1))
     apply_steer = int(interp(-actuators.steer * P.STEER_MAX, P.STEER_LOOKUP_BP, P.STEER_LOOKUP_V))
 
-    lkas_active = enabled and not CS.steer_not_allowed
+    lkas_active = enabled and not CS.steer_not_allowed and CS.lkMode
 
     # Send CAN commands.
     can_sends = []
+
+    # dp
+    blinker_on = CS.out.leftBlinker or CS.out.rightBlinker
+    if not enabled:
+      self.blinker_end_frame = 0
+    if self.last_blinker_on and not blinker_on:
+      self.blinker_end_frame = frame + dragonconf.dpSignalOffDelay
+    apply_steer = common_controller_ctrl(enabled,
+                                         dragonconf.dpLatCtrl,
+                                         dragonconf.dpSteeringOnSignal,
+                                         blinker_on or frame < self.blinker_end_frame,
+                                         apply_steer)
+    self.last_blinker_on = blinker_on
 
     # Send steering command.
     idx = frame % 4

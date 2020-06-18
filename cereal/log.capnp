@@ -799,6 +799,9 @@ struct PathPlan {
   laneChangeState @18 :LaneChangeState;
   laneChangeDirection @19 :LaneChangeDirection;
 
+  # dp
+  dpALCAllowed @20 :Bool;
+
   enum Desire {
     none @0;
     turnLeft @1;
@@ -2050,5 +2053,85 @@ struct Event {
     dMonitoringState @71: DMonitoringState;
     liveLocationKalman @72 :LiveLocationKalman;
     sentinel @73 :Sentinel;
+    dragonConf @74 :DragonConf;
   }
+}
+
+# dp
+struct DragonConf {
+  dpAtl @0 :Bool;
+  dpAppWaze @1 :Bool;
+  dpAppWazeManual @2 :Int8;
+  dpDashcam @3 :Bool;
+  dpDashcamHoursStored @4 :UInt8;
+  dpAutoShutdown @5 :Bool;
+  dpAutoShutdownIn @6 :UInt16;
+  dpLogger @7 :Bool;
+  dpAthenad @8 :Bool;
+  dpUploader @9 :Bool;
+  dpUploadOnMobile @10 :Bool;
+  dpUploadOnHotspot @11 :Bool;
+  dpUpdated @12 :Bool;
+  dpHotspotOnBoot @13 :Bool;
+  dpLatCtrl @14 :Bool;
+  dpSteeringLimitAlert @15 :Bool;
+  dpSteeringOnSignal @16 :Bool;
+  dpSignalOffDelay @17 :UInt8;
+  dpAllowGas @18 :Bool;
+  dpSlowOnCurve @19 :Bool;
+  dpMaxCtrlSpeed @20 :Float32;
+  dpLeadCarAlert @21 :Bool;
+  dpAssistedLcMinMph @22 :UInt8;
+  dpAutoLc @23 :Bool;
+  dpAutoLcCont @24 :Bool;
+  dpAutoLcMinMph @25 :UInt8;
+  dpAutoLcDelay @26 :UInt8;
+  dpDriverMonitor @27 :Bool;
+  dpSteeringMonitor @28 :Bool;
+  dpGearCheck @29 :Bool;
+  dpTempMonitor @30 :Bool;
+  dpDrivingUi @31 :Bool;
+  dpUiScreenOffReversing @32 :Bool;
+  dpUiScreenOffDriving @33 :Bool;
+  dpUiSpeed @34 :Bool;
+  dpUiEvent @35 :Bool;
+  dpUiMaxSpeed @36 :Bool;
+  dpUiFace @37 :Bool;
+  dpUiLane @38 :Bool;
+  dpUiPath @39 :Bool;
+  dpUiLead @40 :Bool;
+  dpUiDev @41 :Bool;
+  dpUiBlinker @42 :Bool;
+  dpUiBrightness @43 :UInt8;
+  dpUiVolumeBoost @44 :Int8;
+  dpAppAutoUpdate @45 :Bool;
+  dpAppExtGps @46 :Bool;
+  dpAppTomtom @47 :Bool;
+  dpAppTomtomAuto @48 :Bool;
+  dpAppTomtomManual @49 :Int8;
+  dpAppAutonavi @50 :Bool;
+  dpAppAutonaviAuto @51 :Bool;
+  dpAppAutonaviManual @52 :Int8;
+  dpAppAegis @53 :Bool;
+  dpAppAegisAuto @54 :Bool;
+  dpAppAegisManual @55 :Int8;
+  dpAppMixplorer @56 :Bool;
+  dpAppMixplorerManual @57 :Int8;
+  dpToyotaSngResponse @58 :Float32;
+  dpToyotaLdw @59 :Bool;
+  dpToyotaSng @60 :Bool;
+  dpCarSelected @61 :Text;
+  dpCarList @62 :Text;
+  dpCarDetected @63 :Text;
+  dpIpAddr @64 :Text;
+  dpFullSpeedFan @65 :Bool;
+  dpLastModified @66 :Text;
+  dpCameraOffset @67 :Int8;
+  dpLocale @68 :Text;
+  dpDisableRelay @69 :Bool;
+  dpChargingCtrl @70 :Bool;
+  dpChargingAt @71 :UInt8;
+  dpDischargingAt @72 :UInt8;
+  dpReg @73 :Bool;
+  dpIsUpdating @74 :Bool;
 }
