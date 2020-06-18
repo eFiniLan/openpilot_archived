@@ -31,6 +31,7 @@ confs = [
   {'name': 'dp_slow_on_curve', 'default': True, 'type': 'Bool'},
   {'name': 'dp_max_ctrl_speed', 'default': 92, 'type': 'Float32'},
   {'name': 'dp_lead_car_alert', 'default': False, 'type': 'Bool'},
+  {'name': 'dp_dynamic_follow', 'default': 0, 'type': 'UInt8', 'min': 0, 'max': 4},
   # assist/auto lane change
   {'name': 'dp_assisted_lc_min_mph', 'default': 45, 'type': 'UInt8', 'min': 0, 'max': 255},
   {'name': 'dp_auto_lc', 'default': False, 'type': 'Bool'},

@@ -91,6 +91,12 @@ const uint8_t bg_colors[][4] = {
   [STATUS_ALERT] = {0xC9, 0x22, 0x31, 0xff},
 };
 
+// dp - dynamic follow btn
+const int df_btn_h = 180;
+const int df_btn_w = 180;
+const int df_btn_x = 1650;
+const int df_btn_y = 750;
+
 
 typedef struct UIScene {
   int frontview;
@@ -196,6 +202,7 @@ typedef struct UIScene {
   std::string dpLocale;
   bool dpIsUpdating;
   bool dpAthenad;
+  int dpDynamicFollow;
 
 } UIScene;
 

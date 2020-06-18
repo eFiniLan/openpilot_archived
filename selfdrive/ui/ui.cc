@@ -118,6 +118,30 @@ static void handle_driver_view_touch(UIState *s, int touch_x, int touch_y) {
   int err = write_db_value("IsDriverViewEnabled", "0", 1);
 }
 
+static bool handle_dp_btn_touch(UIState *s, int touch_x, int touch_y) {
+  //dfButton manager  // code below thanks to kumar: https://github.com/arne182/openpilot/commit/71d5aac9f8a3f5942e89634b20cbabf3e19e3e78
+  if (s->started && s->active_app != cereal::UiLayoutState::App::SETTINGS) {
+    if (s->scene.dpDynamicFollow > 0 && touch_x >= df_btn_x && touch_x <= (df_btn_x + df_btn_w) && touch_y >= df_btn_y && touch_y <= (df_btn_y + df_btn_h)) {
+      s->scene.uilayout_sidebarcollapsed = true;  // collapse sidebar when tapping df button
+      int val = s->scene.dpDynamicFollow;
+      val++;
+      if (val >= 5) {
+        val = 1;
+      }
+
+      char str[1];
+      sprintf(str, "%d", val);
+      write_db_value("dp_dynamic_follow", str, 1);
+
+      char time_str[11];
+      snprintf(time_str, 11, "%lu", time(NULL));
+      write_db_value("dp_last_modified", time_str, 11);
+      return true;
+    }
+  }
+  return false;
+}
+
 static void handle_vision_touch(UIState *s, int touch_x, int touch_y) {
   if (s->started && (touch_x >= s->scene.ui_viz_rx - bdr_s)
     && (s->active_app != cereal::UiLayoutState::App::SETTINGS)) {
@@ -494,6 +518,7 @@ void handle_message(UIState *s, SubMaster &sm) {
     scene.dpUiBlinker = data.getDpUiBlinker();
     scene.dpUiBrightness = data.getDpUiBrightness();
     scene.dpUiVolumeBoost = data.getDpUiVolumeBoost();
+    scene.dpDynamicFollow = data.getDpDynamicFollow();
 
     scene.dpIpAddr = data.getDpIpAddr();
     scene.dpLocale = data.getDpLocale();
@@ -941,9 +966,15 @@ int main(int argc, char* argv[]) {
       int touch_x = -1, touch_y = -1;
       int touched = touch_poll(&touch, &touch_x, &touch_y, 0);
       if (touched == 1) {
-        set_awake(s, true);
-        handle_sidebar_touch(s, touch_x, touch_y);
-        handle_vision_touch(s, touch_x, touch_y);
+        if (s->scene.dpUiScreenOffDriving && s->awake_timeout == 0) {
+          set_awake(s, true);
+        } else {
+          set_awake(s, true);
+          if (!handle_dp_btn_touch(s, touch_x, touch_y)) {
+            handle_sidebar_touch(s, touch_x, touch_y);
+            handle_vision_touch(s, touch_x, touch_y);
+          }
+        }
       }
     }
 

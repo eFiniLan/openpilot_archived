@@ -110,6 +110,8 @@ def confd_thread():
     '''
     if msg.dragonConf.dpAppWaze:
       msg.dragonConf.dpDrivingUi = False
+    if not msg.dragonConf.dpDriverMonitor:
+      msg.dragonConf.dpUiFace = False
 
     '''
     ===================================================
@@ -122,9 +124,10 @@ def confd_thread():
     '''
     ===================================================
     hotspot on boot
+    we do it after 30 secs just in case
     ===================================================
     '''
-    if frame == 0 and msg.dragonConf.dpHotspotOnBoot:
+    if frame == 30 and msg.dragonConf.dpHotspotOnBoot:
       os.system("service call wifi 37 i32 0 i32 1 &")
     '''
     ===================================================

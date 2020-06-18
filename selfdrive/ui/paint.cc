@@ -611,6 +611,35 @@ static void ui_draw_vision_face(UIState *s) {
   ui_draw_circle_image(s->vg, face_x, face_y, face_size, s->img_face, s->scene.monitoring_active);
 }
 
+static void ui_draw_df_button(UIState *s) {
+  const UIScene *scene = &s->scene;
+  nvgBeginPath(s->vg);
+  nvgRoundedRect(s->vg, df_btn_x, df_btn_y, df_btn_w, df_btn_h, 20);
+  nvgStrokeColor(s->vg, COLOR_WHITE_ALPHA(80));
+  nvgStrokeWidth(s->vg, 6);
+  nvgStroke(s->vg);
+
+  nvgFontFaceId(s->vg,  s->font_sans_regular);
+  nvgFillColor(s->vg, COLOR_WHITE_ALPHA(200));
+  nvgFontSize(s->vg, (scene->dpLocale == "zh-TW"? 96 : scene->dpLocale == "zh-CN"? 96 : 48));
+  nvgTextAlign(s->vg, NVG_ALIGN_CENTER);
+
+  nvgText(s->vg, df_btn_x + df_btn_w / 2, df_btn_y + df_btn_h / 2,
+  scene->dpDynamicFollow == 4? (scene->dpLocale == "zh-TW"? "自動" : scene->dpLocale == "zh-CN"? "自动" : "AUTO") :
+  scene->dpDynamicFollow == 3? (scene->dpLocale == "zh-TW"? "長距" : scene->dpLocale == "zh-CN"? "长距" : "LONG") :
+  scene->dpDynamicFollow == 2? (scene->dpLocale == "zh-TW"? "正常" : scene->dpLocale == "zh-CN"? "正常" : "NORMAL") :
+  (scene->dpLocale == "zh-TW"? "短距" : scene->dpLocale == "zh-CN"? "短距" : "SHORT"),
+  NULL);
+
+  nvgFontFaceId(s->vg,  s->font_sans_regular);
+  nvgFillColor(s->vg, COLOR_WHITE_ALPHA(200));
+  nvgFontSize(s->vg, 37.5);
+  nvgTextAlign(s->vg, NVG_ALIGN_CENTER);
+  nvgText(s->vg, df_btn_x + df_btn_w / 2, df_btn_y + df_btn_h - 10,
+  (scene->dpLocale == "zh-TW"? "車距" : scene->dpLocale == "zh-CN"? "车距" : "FOLLOW"),
+  NULL);
+}
+
 static void ui_draw_driver_view(UIState *s) {
   const UIScene *scene = &s->scene;
   s->scene.uilayout_sidebarcollapsed = true;
@@ -776,6 +805,9 @@ static void ui_draw_vision_footer(UIState *s) {
   nvgRect(s->vg, s->scene.ui_viz_rx, footer_y, s->scene.ui_viz_rw, footer_h);
   if (s->scene.dpUiFace) {
   ui_draw_vision_face(s);
+  }
+  if ((int)s->scene.dpDynamicFollow > 0) {
+    ui_draw_df_button(s);
   }
 
   if (s->scene.dpUiDev || s->scene.dpDashcam || s->scene.dpAppWaze) {
