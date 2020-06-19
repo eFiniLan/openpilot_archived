@@ -771,6 +771,7 @@ EVENTS = {
   },
 
   EventName.leadCarMoving: {
+      ET.NO_ENTRY: NoEntryAlert(_("Lead Car Is Moving")),
       ET.WARNING: Alert(
      _("Lead Car Is Moving"),
      "",

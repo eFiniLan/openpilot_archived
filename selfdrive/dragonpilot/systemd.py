@@ -45,11 +45,11 @@ def confd_thread():
 
     '''
     ===================================================
-    we only need to check last_modified every 5 seconds
+    we only need to check last_modified every 3 seconds
     if val is modified, we then proceed to read params
     ===================================================
     '''
-    if frame % 5 == 0:
+    if frame % 3 == 0:
       modified = params.get('dp_last_modified', encoding='utf8').rstrip('\x00')
       if last_modified != modified:
         update_params = True
@@ -141,12 +141,10 @@ def confd_thread():
         sm_updated = True
       if sm['thermal'].started:
         if frame >= dashcam_next_frame - 1:
-          print("new recording started")
           now = datetime.datetime.now()
           file_name = now.strftime("%Y-%m-%d_%H-%M-%S")
           os.system("screenrecord --bit-rate %s --time-limit %s %s%s.mp4 &" % (DASHCAM_BIT_RATES, DASHCAM_DURATION, DASHCAM_VIDEOS_PATH, file_name))
           dashcam_next_frame = frame + DASHCAM_DURATION
-        print("frame vs next_frame: %s vs %s" % (frame, dashcam_next_frame))
       else:
         dashcam_next_frame = 0
 

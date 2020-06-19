@@ -44,13 +44,6 @@ def dmonitoringd_thread(sm=None, pm=None):
   # 10Hz <- dmonitoringmodeld
   while True:
     sm.update()
-    if sm.updated['dragonConf']:
-      if not sm['dragonConf'].dpSteeringMonitor and not sm['dragonConf'].dpDriverMonitor:
-        driver_status.awareness = 1.
-        driver_status.awareness_active = 1.
-        driver_status.awareness_passive = 1.
-      elif not sm['dragonConf'].dpDriverMonitor:
-        driver_status.active_monitoring_mode = False
 
     # Handle calibration
     if sm.updated['liveCalibration']:
@@ -64,6 +57,16 @@ def dmonitoringd_thread(sm=None, pm=None):
       driver_engaged = len(sm['carState'].buttonEvents) > 0 or \
                         v_cruise != v_cruise_last or \
                         sm['carState'].steeringPressed
+
+      if sm.updated['dragonConf']:
+        if not sm['dragonConf'].dpDriverMonitor:
+          driver_status.active_monitoring_mode = False
+          driver_status.face_detected = False
+          if not sm['dragonConf'].dpSteeringMonitor:
+            driver_status.awareness = 1.
+            driver_status.awareness_active = 1.
+            driver_status.awareness_passive = 1.
+
       if driver_engaged:
         driver_status.update(Events(), True, sm['carState'].cruiseState.enabled, sm['carState'].standstill)
       v_cruise_last = v_cruise
