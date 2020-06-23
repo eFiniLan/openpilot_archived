@@ -771,11 +771,15 @@ EVENTS = {
   },
 
   EventName.leadCarMoving: {
-      ET.NO_ENTRY: NoEntryAlert(_("Lead Car Is Moving")),
-      ET.WARNING: Alert(
+     ET.PERMANENT: Alert(
      _("Lead Car Is Moving"),
      "",
      AlertStatus.userPrompt, AlertSize.small,
-     Priority.LOW, VisualAlert.steerRequired, AudibleAlert.chimeWarning2, .1, .1, .1),
+     Priority.LOW, VisualAlert.steerRequired, AudibleAlert.chimePrompt, .1, .1, .1),
+     ET.WARNING: Alert(
+     _("Lead Car Is Moving"),
+     "",
+     AlertStatus.userPrompt, AlertSize.small,
+     Priority.LOW, VisualAlert.steerRequired, AudibleAlert.chimePrompt, .1, .1, .1),
   },
 }
