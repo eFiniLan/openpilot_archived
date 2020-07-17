@@ -7,6 +7,7 @@ import cereal.messaging as messaging
 from selfdrive.controls.lib.events import Events
 from selfdrive.monitoring.driver_monitor import DriverStatus, MAX_TERMINAL_ALERTS, MAX_TERMINAL_DURATION
 from selfdrive.locationd.calibration_helpers import Calibration
+from common.realtime import DT_DMON
 
 def dmonitoringd_thread(sm=None, pm=None):
   gc.disable()
@@ -21,7 +22,7 @@ def dmonitoringd_thread(sm=None, pm=None):
     pm = messaging.PubMaster(['dMonitoringState'])
 
   if sm is None:
-    sm = messaging.SubMaster(['driverState', 'liveCalibration', 'carState', 'model'])
+    sm = messaging.SubMaster(['dragonConf', 'driverState', 'liveCalibration', 'carState', 'model'])
 
   driver_status = DriverStatus()
   is_rhd = params.get("IsRHD")
@@ -41,9 +42,32 @@ def dmonitoringd_thread(sm=None, pm=None):
   v_cruise_last = 0
   driver_engaged = False
 
+  # dp
+  dp_driver_monitor = True
+  dp_steering_monitor = True
+  dp_steering_monitor_timer = 70
+
   # 10Hz <- dmonitoringmodeld
   while True:
     sm.update()
+
+    # dp
+    if sm.updated['dragonConf']:
+      dp_driver_monitor = sm['dragonConf'].dpDriverMonitor
+      dp_steering_monitor = sm['dragonConf'].dpSteeringMonitor
+      dp_steering_monitor_timer = sm['dragonConf'].dpSteeringMonitorTimer if sm['dragonConf'].dpSteeringMonitorTimer >= 70 else 70
+    if not dp_driver_monitor:
+      driver_status.active_monitoring_mode = False
+      driver_status.face_detected = False
+      driver_status.threshold_pre = 15. / dp_steering_monitor_timer
+      driver_status.threshold_prompt = 6. / dp_steering_monitor_timer
+      driver_status.step_change = DT_DMON / dp_steering_monitor_timer
+      if not dp_steering_monitor:
+        driver_status.awareness = 1.
+        driver_status.awareness_active = 1.
+        driver_status.awareness_passive = 1.
+        driver_status.terminal_alert_cnt = 0
+        driver_status.terminal_time = 0
 
     # Handle calibration
     if sm.updated['liveCalibration']:
@@ -56,7 +80,9 @@ def dmonitoringd_thread(sm=None, pm=None):
       v_cruise = sm['carState'].cruiseState.speed
       driver_engaged = len(sm['carState'].buttonEvents) > 0 or \
                         v_cruise != v_cruise_last or \
-                        sm['carState'].steeringPressed
+                        sm['carState'].steeringPressed or \
+                       sm['carState'].gasPressed or \
+                       sm['carState'].brakePressed
       if driver_engaged:
         driver_status.update(Events(), True, sm['carState'].cruiseState.enabled, sm['carState'].standstill)
       v_cruise_last = v_cruise
@@ -68,7 +94,8 @@ def dmonitoringd_thread(sm=None, pm=None):
     # Get data from dmonitoringmodeld
     if sm.updated['driverState']:
       events = Events()
-      driver_status.get_pose(sm['driverState'], cal_rpy, sm['carState'].vEgo, sm['carState'].cruiseState.enabled)
+      if dp_driver_monitor:
+        driver_status.get_pose(sm['driverState'], cal_rpy, sm['carState'].vEgo, sm['carState'].cruiseState.enabled)
       # Block any engage after certain distrations
       if driver_status.terminal_alert_cnt >= MAX_TERMINAL_ALERTS or driver_status.terminal_time >= MAX_TERMINAL_DURATION:
         events.add(car.CarEvent.EventName.tooDistracted)
