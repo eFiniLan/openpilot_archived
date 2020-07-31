@@ -431,13 +431,13 @@ def manager_thread():
   cloudlog.info({"environ": os.environ})
 
   # save boot log
-  subprocess.call(["./loggerd", "--bootlog"], cwd=os.path.join(BASEDIR, "selfdrive/loggerd"))
+  # subprocess.call(["./loggerd", "--bootlog"], cwd=os.path.join(BASEDIR, "selfdrive/loggerd"))
 
   params = Params()
 
   # start daemon processes
-  for p in daemon_processes:
-    start_daemon_process(p)
+  # for p in daemon_processes:
+  #   start_daemon_process(p)
 
   # start persistent processes
   for p in persistent_processes:
@@ -570,6 +570,8 @@ def main():
 
   if os.getenv("PREPAREONLY") is not None:
     return
+  del managed_processes['uploader']
+  del managed_processes['updated']
 
   # SystemExit on sigterm
   signal.signal(signal.SIGTERM, lambda signum, frame: sys.exit(1))
