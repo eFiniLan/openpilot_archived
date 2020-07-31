@@ -253,6 +253,16 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.6], [0.1]]
       ret.lateralTuning.pid.kf = 0.00006
 
+    elif candidate == CAR.LEXUS_NXT:
+      stop_and_go = True
+      ret.safetyParam = 100
+      ret.wheelbase = 2.66
+      ret.steerRatio = 14.7
+      tire_stiffness_factor = 0.444 # not optimized yet
+      ret.mass = 4070 * CV.LB_TO_KG + STD_CARGO_KG
+      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.3], [0.05]]
+      ret.lateralTuning.pid.kf = 0.00006
+
     ret.steerRateCost = 1.
     ret.centerToFront = ret.wheelbase * 0.44
 
@@ -310,6 +320,12 @@ class CarInterface(CarInterfaceBase):
     self.cp_cam.update_strings(can_strings)
 
     ret = self.CS.update(self.cp, self.cp_cam)
+    if ret.cruiseState.available:
+      ret.cruiseState.enabled = True
+      if ret.gearShifter in [car.CarState.GearShifter.reverse, car.CarState.GearShifter.park]:
+        ret.cruiseState.enabled = False
+      if ret.seatbeltUnlatched or ret.doorOpen:
+        ret.cruiseState.enabled = False
 
     ret.canValid = self.cp.can_valid and self.cp_cam.can_valid
     ret.steeringRateLimited = self.CC.steer_rate_limited if self.CC is not None else False
