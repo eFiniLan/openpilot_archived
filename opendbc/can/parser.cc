@@ -43,11 +43,11 @@ bool MessageState::parse(uint64_t sec, uint16_t ts_, uint8_t * dat) {
       if (!update_counter_generic(tmp, sig.b2)) {
         return false;
       }
-    } else if (sig.type == SignalType::TOYOTA_CHECKSUM) {
-      if (toyota_checksum(address, dat_be, size) != tmp) {
-        INFO("0x%X CHECKSUM FAIL\n", address);
-        return false;
-      }
+//    } else if (sig.type == SignalType::TOYOTA_CHECKSUM) {
+//      if (toyota_checksum(address, dat_be, size) != tmp) {
+//        INFO("0x%X CHECKSUM FAIL\n", address);
+//        return false;
+//      }
     } else if (sig.type == SignalType::VOLKSWAGEN_CHECKSUM) {
       if (volkswagen_crc(address, dat_le, size) != tmp) {
         INFO("0x%X CRC FAIL\n", address);
