@@ -29,6 +29,7 @@ a.out
 *.class
 *.pyxbldc
 *.vcd
+*.po~
 config.json
 clcache
 
