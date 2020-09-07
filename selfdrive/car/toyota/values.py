@@ -24,6 +24,7 @@ class CAR:
   CHRH = "TOYOTA C-HR HYBRID 2018"
   CAMRY = "TOYOTA CAMRY 2018"
   CAMRYH = "TOYOTA CAMRY HYBRID 2018"
+  CAMRY_SX = "TOYOTA CAMRY SX 2019"
   HIGHLANDER = "TOYOTA HIGHLANDER 2017"
   HIGHLANDER_TSS2 = "TOYOTA HIGHLANDER 2020"
   HIGHLANDERH = "TOYOTA HIGHLANDER HYBRID 2018"
@@ -293,9 +294,6 @@ FW_VERSIONS = {
     ],
   },
   CAR.CAMRY: {
-    (Ecu.engine, 0x7e0, None): [
-      b'\x02333P1100\x00\x00\x00\x00\x00\x00\x00\x00A0202000\x00\x00\x00\x00\x00\x00\x00\x00',
-    ],
     (Ecu.engine, 0x700, None): [
       b'\x018966306L3100\x00\x00\x00\x00',
       b'\x018966306L4200\x00\x00\x00\x00',
@@ -319,14 +317,12 @@ FW_VERSIONS = {
       b'8821F0603300    ',
       b'8821F0607200    ',
       b'8821F0608000    ',
-      b'8821F0605200    ',
     ],
     (Ecu.esp, 0x7b0, None): [
       b'F152606210\x00\x00\x00\x00\x00\x00',
       b'F152606230\x00\x00\x00\x00\x00\x00',
       b'F152606290\x00\x00\x00\x00\x00\x00',
       b'F152633540\x00\x00\x00\x00\x00\x00',
-      b'F152633A20\x00\x00\x00\x00\x00\x00',
     ],
     (Ecu.eps, 0x7a1, None): [
       b'8965B33540\x00\x00\x00\x00\x00\x00',
@@ -339,7 +335,6 @@ FW_VERSIONS = {
       b'8821F0603300    ',
       b'8821F0607200    ',
       b'8821F0608000    ',
-      b'8821F0605200    ',
     ],
     (Ecu.fwdCamera, 0x750, 0x6d): [
       b'8646F0601200    ',
@@ -348,6 +343,22 @@ FW_VERSIONS = {
       b'8646F0605000    ',
       b'8646F0606000    ',
       b'8646F0606100    ',
+    ],
+  },
+  CAR.CAMRY_SX: {
+    (Ecu.engine, 0x7e0, None): [
+      b'\x02333P1100\x00\x00\x00\x00\x00\x00\x00\x00A0202000\x00\x00\x00\x00\x00\x00\x00\x00',
+    ],
+    (Ecu.dsu, 0x791, None): [
+      b'8821F0605200    ',
+    ],
+    (Ecu.esp, 0x7b0, None): [
+      b'F152633A20\x00\x00\x00\x00\x00\x00',
+    ],
+    (Ecu.fwdRadar, 0x750, 0xf): [  # Same as 0x791
+      b'8821F0605200    ',
+    ],
+    (Ecu.fwdCamera, 0x750, 0x6d): [
       b'8646F0604100    ',
     ],
   },
@@ -1208,6 +1219,7 @@ DBC = {
   CAR.CHRH: dbc_dict('toyota_nodsu_hybrid_pt_generated', 'toyota_adas'),
   CAR.CAMRY: dbc_dict('toyota_nodsu_pt_generated', 'toyota_adas'),
   CAR.CAMRYH: dbc_dict('toyota_camry_hybrid_2018_pt_generated', 'toyota_adas'),
+  CAR.CAMRY_SX: dbc_dict('toyota_nodsu_pt_generated', 'toyota_adas'),
   CAR.HIGHLANDER: dbc_dict('toyota_highlander_2017_pt_generated', 'toyota_adas'),
   CAR.HIGHLANDER_TSS2: dbc_dict('toyota_nodsu_pt_generated', 'toyota_tss2_adas'),
   CAR.HIGHLANDERH: dbc_dict('toyota_highlander_hybrid_2018_pt_generated', 'toyota_adas'),
@@ -1225,6 +1237,6 @@ DBC = {
   CAR.LEXUS_NXH: dbc_dict('lexus_nx300h_2018_pt_generated', 'toyota_adas'),
 }
 
-NO_DSU_CAR = set([CAR.CHR, CAR.CHRH, CAR.CAMRY, CAR.CAMRYH, CAR.RAV4_TSS2, CAR.COROLLA_TSS2, CAR.COROLLAH_TSS2, CAR.LEXUS_ES_TSS2, CAR.LEXUS_ESH_TSS2, CAR.RAV4H_TSS2, CAR.LEXUS_RX_TSS2, CAR.LEXUS_RXH_TSS2, CAR.HIGHLANDER_TSS2, CAR.HIGHLANDERH_TSS2])
+NO_DSU_CAR = set([CAR.CHR, CAR.CHRH, CAR.CAMRY, CAR.CAMRY_SX, CAR.CAMRYH, CAR.RAV4_TSS2, CAR.COROLLA_TSS2, CAR.COROLLAH_TSS2, CAR.LEXUS_ES_TSS2, CAR.LEXUS_ESH_TSS2, CAR.RAV4H_TSS2, CAR.LEXUS_RX_TSS2, CAR.LEXUS_RXH_TSS2, CAR.HIGHLANDER_TSS2, CAR.HIGHLANDERH_TSS2])
 TSS2_CAR = set([CAR.RAV4_TSS2, CAR.COROLLA_TSS2, CAR.COROLLAH_TSS2, CAR.LEXUS_ES_TSS2, CAR.LEXUS_ESH_TSS2, CAR.RAV4H_TSS2, CAR.LEXUS_RX_TSS2, CAR.LEXUS_RXH_TSS2, CAR.HIGHLANDER_TSS2, CAR.HIGHLANDERH_TSS2])
 NO_STOP_TIMER_CAR = set([CAR.RAV4H, CAR.HIGHLANDERH, CAR.HIGHLANDER, CAR.RAV4_TSS2, CAR.COROLLA_TSS2, CAR.COROLLAH_TSS2, CAR.LEXUS_ES_TSS2, CAR.LEXUS_ESH_TSS2, CAR.SIENNA, CAR.RAV4H_TSS2, CAR.LEXUS_RX_TSS2, CAR.LEXUS_RXH_TSS2, CAR.HIGHLANDER_TSS2, CAR.HIGHLANDERH_TSS2])  # no resume button press required
