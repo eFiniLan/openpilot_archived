@@ -176,7 +176,7 @@ class CarState(CarStateBase):
       signals += [("L_APPROACHING", "BSM", 0)]
       signals += [("R_ADJACENT", "BSM", 0)]
       signals += [("R_APPROACHING", "BSM", 0)]
-
+    checks = []
     return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, 0)
 
   @staticmethod
@@ -191,5 +191,5 @@ class CarState(CarStateBase):
     checks = [
       ("STEERING_LKA", 42)
     ]
-
+    checks = []
     return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, 2)
