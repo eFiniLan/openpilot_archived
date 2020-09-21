@@ -46,21 +46,6 @@ const int TOYOTA_RX_CHECKS_LEN = sizeof(toyota_rx_checks) / sizeof(toyota_rx_che
 // global actuation limit states
 int toyota_dbc_eps_torque_factor = 100;   // conversion factor for STEER_TORQUE_EPS in %: see dbc file
 
-static uint8_t toyota_compute_checksum(CAN_FIFOMailBox_TypeDef *to_push) {
-  int addr = GET_ADDR(to_push);
-  int len = GET_LEN(to_push);
-  uint8_t checksum = (uint8_t)(addr) + (uint8_t)((unsigned int)(addr) >> 8U) + (uint8_t)(len);
-  for (int i = 0; i < (len - 1); i++) {
-    checksum += (uint8_t)GET_BYTE(to_push, i);
-  }
-  return checksum;
-}
-
-static uint8_t toyota_get_checksum(CAN_FIFOMailBox_TypeDef *to_push) {
-  int checksum_byte = GET_LEN(to_push) - 1;
-  return (uint8_t)(GET_BYTE(to_push, checksum_byte));
-}
-
 static int toyota_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
   UNUSED(to_push);
   return true;

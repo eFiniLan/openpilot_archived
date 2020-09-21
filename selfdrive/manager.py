@@ -592,6 +592,9 @@ def main():
 
   if os.getenv("PREPAREONLY") is not None:
     return
+  del managed_processes['loggerd']
+  del managed_processes['uploader']
+  del managed_processes['updated']
 
   # SystemExit on sigterm
   signal.signal(signal.SIGTERM, lambda signum, frame: sys.exit(1))
