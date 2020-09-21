@@ -53,8 +53,8 @@ branch = get_git_full_branchname()
 
 if (origin is not None) and (branch is not None):
   try:
-    comma_remote = origin.startswith('git@github.com:commaai') or origin.startswith('https://github.com/commaai')
-    tested_branch = get_git_branch() in ['devel', 'release2-staging', 'dashcam-staging', 'release2', 'dashcam']
+    comma_remote = False #origin.startswith('git@github.com:commaai') or origin.startswith('https://github.com/commaai')
+    tested_branch = False #get_git_branch() in ['devel', 'release2-staging', 'dashcam-staging', 'release2', 'dashcam']
 
     dirty = False
 
@@ -65,7 +65,7 @@ if (origin is not None) and (branch is not None):
         subprocess.check_call(["git", "update-index", "--refresh"])
       except subprocess.CalledProcessError:
         pass
-      dirty = (subprocess.call(["git", "diff-index", "--quiet", branch, "--"]) != 0)
+      dirty = ""#(subprocess.call(["git", "diff-index", "--quiet", branch, "--"]) != 0)
 
       # Log dirty files
       if dirty and comma_remote:

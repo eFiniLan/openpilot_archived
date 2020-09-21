@@ -561,7 +561,7 @@ int main(int argc, char** argv) {
   for (const auto& it : services) {
     std::string name = it.name;
 
-    if (it.should_log) {
+    if (name != "health" && name != "controlsState" && name != "carControl" && name != "carState" && name != "carEvents" && it.should_log) {
       SubSocket * sock = SubSocket::create(s.ctx, name);
       assert(sock != NULL);
 
