@@ -75,8 +75,7 @@ class Controls:
     internet_needed = (params.get("Offroad_ConnectivityNeeded", encoding='utf8') is not None) and (params.get("DisableUpdates") != b"1")
     community_feature_toggle = params.get("CommunityFeaturesToggle", encoding='utf8') == "1"
     openpilot_enabled_toggle = params.get("OpenpilotEnabledToggle", encoding='utf8') == "1"
-    passive = params.get("Passive", encoding='utf8') == "1" or \
-              internet_needed or not openpilot_enabled_toggle
+    passive = params.get("Passive", encoding='utf8') == "1" or not openpilot_enabled_toggle
 
     # detect sound card presence and ensure successful init
     sounds_available = not ANDROID or get_sound_card_online()
@@ -87,6 +86,10 @@ class Controls:
     community_feature_disallowed = self.CP.communityFeature and not community_feature_toggle
     self.read_only = not car_recognized or not controller_available or \
                        self.CP.dashcamOnly or community_feature_disallowed
+    print("car_recognized: %s " % car_recognized)
+    print("controller_available: %s " % controller_available)
+    print("dashcamOnly: %s " % self.CP.dashcamOnly)
+    print("community_feature_disallowed: %s " % community_feature_disallowed)
     if self.read_only:
       self.CP.safetyModel = car.CarParams.SafetyModel.noOutput
 
