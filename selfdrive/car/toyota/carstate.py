@@ -72,7 +72,7 @@ class CarState(CarStateBase):
     ret.steeringTorqueEps = cp.vl["STEER_TORQUE_SENSOR"]['STEER_TORQUE_EPS']
     # we could use the override bit from dbc, but it's triggered at too high torque values
     ret.steeringPressed = abs(ret.steeringTorque) > STEER_THRESHOLD
-    ret.steerWarning = cp.vl["EPS_STATUS"]['LKA_STATE'] not in [1, 5]
+    ret.steerWarning = False #cp.vl["EPS_STATUS"]['LKA_STATE'] not in [1, 5]
 
     if self.CP.carFingerprint == CAR.LEXUS_IS:
       ret.cruiseState.available = cp.vl["DSU_CRUISE"]['MAIN_ON'] != 0
@@ -101,7 +101,7 @@ class CarState(CarStateBase):
 
     ret.espDisabled = cp.vl["ESP_CONTROL"]['TC_DISABLED'] != 0
     # 2 is standby, 10 is active. TODO: check that everything else is really a faulty state
-    self.steer_state = cp.vl["EPS_STATUS"]['LKA_STATE']
+    self.steer_state = 10 #cp.vl["EPS_STATUS"]['LKA_STATE']
 
     if self.CP.carFingerprint in TSS2_CAR:
       ret.leftBlindspot = (cp.vl["BSM"]['L_ADJACENT'] == 1) or (cp.vl["BSM"]['L_APPROACHING'] == 1)
@@ -137,7 +137,7 @@ class CarState(CarStateBase):
       ("STEER_TORQUE_EPS", "STEER_TORQUE_SENSOR", 0),
       ("STEER_ANGLE", "STEER_TORQUE_SENSOR", 0),
       ("TURN_SIGNALS", "STEERING_LEVERS", 3),   # 3 is no blinkers
-      ("LKA_STATE", "EPS_STATUS", 0),
+      #("LKA_STATE", "EPS_STATUS", 0),
       ("BRAKE_LIGHTS_ACC", "ESP_CONTROL", 0),
       ("AUTO_HIGH_BEAM", "LIGHT_STALK", 0),
     ]
@@ -149,7 +149,7 @@ class CarState(CarStateBase):
       ("STEER_ANGLE_SENSOR", 80),
       ("PCM_CRUISE", 33),
       ("STEER_TORQUE_SENSOR", 50),
-      ("EPS_STATUS", 25),
+      #("EPS_STATUS", 25),
     ]
 
     if CP.carFingerprint == CAR.LEXUS_IS:
