@@ -10,7 +10,8 @@ from common.params import Params, put_nonblocking
 import subprocess
 import re
 import os
-from common.android import getprop
+# from common.android import getprop
+from common.hardware import HARDWARE
 from selfdrive.thermald.power_monitoring import set_battery_charging, get_battery_charging
 from math import floor
 params = Params()
@@ -30,7 +31,7 @@ def confd_thread():
   last_modified = None
   update_params = False
   frame = 0
-  locale = getprop("persist.sys.locale").rstrip('\n')
+  locale = HARDWARE.getprop("persist.sys.locale").rstrip('\n')
 
   last_autoshutdown = False
   last_sec = None
