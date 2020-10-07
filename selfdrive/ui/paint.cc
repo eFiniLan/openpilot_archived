@@ -596,111 +596,111 @@ static void ui_draw_vision_header(UIState *s) {
 }
 
 ///////////////////////////////////////////////////// DP START /////////////////////////////////////////////////////
-static void ui_draw_infobar(UIState *s) {
-  const UIScene *scene = &s->scene;
-  int ui_viz_rx = scene->ui_viz_rx;
-  bool hasSidebar = !s->scene.uilayout_sidebarcollapsed;
-  int rect_w = vwp_w - ui_viz_rx - bdr_s;
-  int rect_x = (hasSidebar? (bdr_s+sbr_w) : ui_viz_rx);
-  int rect_y = vwp_h - bdr_s - info_bar_h;
-  int text_x = rect_w / 2 + ui_viz_rx;
-  int text_y = rect_y + 55;
+//static void ui_draw_infobar(UIState *s) {
+//  const UIScene *scene = &s->scene;
+//  int ui_viz_rx = scene->ui_viz_rx;
+//  bool hasSidebar = !s->scene.uilayout_sidebarcollapsed;
+//  int rect_w = vwp_w - ui_viz_rx - bdr_s;
+//  int rect_x = (hasSidebar? (bdr_s+sbr_w) : ui_viz_rx);
+//  int rect_y = vwp_h - bdr_s - info_bar_h;
+//  int text_x = rect_w / 2 + ui_viz_rx;
+//  int text_y = rect_y + 55;
+//
+//  char infobar[100];
+//  // create time string
+//  char date_time[20];
+//  time_t rawtime = time(NULL);
+//  struct tm timeinfo;
+//  localtime_r(&rawtime, &timeinfo);
+//  strftime(date_time, sizeof(date_time),"%D %T", &timeinfo);
+//
+//  // Create temp string
+//  char temp[6];
+//  snprintf(temp, sizeof(temp), "%02d°C", scene->thermal.getPa0());
+//
+//  // create battery percentage string
+//  char battery[5];
+//  snprintf(battery, sizeof(battery), "%02d%%", scene->thermal.getBatteryPercent());
+//
+//  if (!scene->dpUiDev) {
+//    char rel_steer[9];
+//    snprintf(rel_steer, sizeof(rel_steer), "%s%05.1f°", scene->controls_state.getAngleSteers() < 0? "-" : "+", fabs(scene->angleSteers));
+//
+//    char des_steer[9];
+//    if (scene->controls_state.getEnabled()) {
+//      snprintf(des_steer, sizeof(des_steer), "%s%05.1f°", scene->controls_state.getAngleSteersDes() < 0? "-" : "+", fabs(scene->angleSteersDes));
+//    } else {
+//      snprintf(des_steer, sizeof(des_steer), "%7s", "-");
+//    }
+//
+//    char lead_dist[8];
+//    if (scene->lead_data[0].getStatus()) {
+//      snprintf(lead_dist, sizeof(lead_dist), "%06.2fm", scene->lead_data[0].getDRel());
+//    } else {
+//      snprintf(lead_dist, sizeof(lead_dist), "%7s", "-");
+//    }
+//
+//    snprintf(
+//      infobar,
+//      sizeof(infobar),
+//      "%s /TMP: %s /BAT: %s /REL: %s /DES: %s /DIS: %s",
+//      date_time,
+//      temp,
+//      battery,
+//      rel_steer,
+//      des_steer,
+//      lead_dist
+//    );
+//  } else {
+//    snprintf(
+//      infobar,
+//      sizeof(infobar),
+//      "%s /TMP: %s /BAT: %s",
+//      date_time,
+//      temp,
+//      battery
+//    );
+//  }
+//
+//  nvgBeginPath(s->vg);
+//  nvgRect(s->vg, rect_x, rect_y, rect_w, info_bar_h);
+//  nvgFillColor(s->vg, (scene->brakeLights? COLOR_RED_ALPHA(200) : COLOR_BLACK_ALPHA(scene->dpAppWaze? 150 : 100)));
+//  nvgFill(s->vg);
+//
+//  nvgFontSize(s->vg, hasSidebar? 35:42);
+//  nvgFontFaceId(s->vg, s->font_courbd);
+//  nvgFillColor(s->vg, COLOR_WHITE_ALPHA(200));
+//  nvgTextAlign(s->vg, NVG_ALIGN_CENTER);
+//  nvgText(s->vg, text_x, text_y, infobar, NULL);
+//}
 
-  char infobar[100];
-  // create time string
-  char date_time[20];
-  time_t rawtime = time(NULL);
-  struct tm timeinfo;
-  localtime_r(&rawtime, &timeinfo);
-  strftime(date_time, sizeof(date_time),"%D %T", &timeinfo);
-
-  // Create temp string
-  char temp[6];
-  snprintf(temp, sizeof(temp), "%02d°C", scene->thermal.getPa0());
-
-  // create battery percentage string
-  char battery[5];
-  snprintf(battery, sizeof(battery), "%02d%%", scene->thermal.getBatteryPercent());
-
-  if (!scene->dpUiDev) {
-    char rel_steer[9];
-    snprintf(rel_steer, sizeof(rel_steer), "%s%05.1f°", scene->controls_state.getAngleSteers() < 0? "-" : "+", fabs(scene->angleSteers));
-
-    char des_steer[9];
-    if (scene->controls_state.getEnabled()) {
-      snprintf(des_steer, sizeof(des_steer), "%s%05.1f°", scene->controls_state.getAngleSteersDes() < 0? "-" : "+", fabs(scene->angleSteersDes));
-    } else {
-      snprintf(des_steer, sizeof(des_steer), "%7s", "-");
-    }
-
-    char lead_dist[8];
-    if (scene->lead_data[0].getStatus()) {
-      snprintf(lead_dist, sizeof(lead_dist), "%06.2fm", scene->lead_data[0].getDRel());
-    } else {
-      snprintf(lead_dist, sizeof(lead_dist), "%7s", "-");
-    }
-
-    snprintf(
-      infobar,
-      sizeof(infobar),
-      "%s /TMP: %s /BAT: %s /REL: %s /DES: %s /DIS: %s",
-      date_time,
-      temp,
-      battery,
-      rel_steer,
-      des_steer,
-      lead_dist
-    );
-  } else {
-    snprintf(
-      infobar,
-      sizeof(infobar),
-      "%s /TMP: %s /BAT: %s",
-      date_time,
-      temp,
-      battery
-    );
-  }
-
-  nvgBeginPath(s->vg);
-  nvgRect(s->vg, rect_x, rect_y, rect_w, info_bar_h);
-  nvgFillColor(s->vg, (scene->brakeLights? COLOR_RED_ALPHA(200) : COLOR_BLACK_ALPHA(scene->dpAppWaze? 150 : 100)));
-  nvgFill(s->vg);
-
-  nvgFontSize(s->vg, hasSidebar? 35:42);
-  nvgFontFaceId(s->vg, s->font_courbd);
-  nvgFillColor(s->vg, COLOR_WHITE_ALPHA(200));
-  nvgTextAlign(s->vg, NVG_ALIGN_CENTER);
-  nvgText(s->vg, text_x, text_y, infobar, NULL);
-}
-
-static void ui_draw_blindspots(UIState *s) {
-  const UIScene *scene = &s->scene;
-  bool hasSidebar = !scene->uilayout_sidebarcollapsed;
-  int ui_viz_rx = scene->ui_viz_rx;
-  int left_x = (hasSidebar? (bdr_s+sbr_w) : ui_viz_rx);
-  int y = vwp_h - bdr_s - info_bar_h - 100;
-  int right_x = vwp_w - bdr_s;
-
-  if (scene->leftBlindspot) {
-    nvgBeginPath(s->vg);
-    nvgMoveTo(s->vg, left_x, y);
-    nvgLineTo(s->vg, left_x, y+100);
-    nvgLineTo(s->vg, left_x+100, y+100);
-    nvgClosePath(s->vg);
-    nvgFillColor(s->vg, COLOR_RED_ALPHA(200));
-    nvgFill(s->vg);
-  }
-  if (scene->rightBlindspot) {
-    nvgBeginPath(s->vg);
-    nvgMoveTo(s->vg, right_x, y);
-    nvgLineTo(s->vg, right_x, y+100);
-    nvgLineTo(s->vg, right_x-100, y+100);
-    nvgClosePath(s->vg);
-    nvgFillColor(s->vg, COLOR_RED_ALPHA(200));
-    nvgFill(s->vg);
-  }
-}
+//static void ui_draw_blindspots(UIState *s) {
+//  const UIScene *scene = &s->scene;
+//  bool hasSidebar = !scene->uilayout_sidebarcollapsed;
+//  int ui_viz_rx = scene->ui_viz_rx;
+//  int left_x = (hasSidebar? (bdr_s+sbr_w) : ui_viz_rx);
+//  int y = vwp_h - bdr_s - info_bar_h - 100;
+//  int right_x = vwp_w - bdr_s;
+//
+//  if (scene->leftBlindspot) {
+//    nvgBeginPath(s->vg);
+//    nvgMoveTo(s->vg, left_x, y);
+//    nvgLineTo(s->vg, left_x, y+100);
+//    nvgLineTo(s->vg, left_x+100, y+100);
+//    nvgClosePath(s->vg);
+//    nvgFillColor(s->vg, COLOR_RED_ALPHA(200));
+//    nvgFill(s->vg);
+//  }
+//  if (scene->rightBlindspot) {
+//    nvgBeginPath(s->vg);
+//    nvgMoveTo(s->vg, right_x, y);
+//    nvgLineTo(s->vg, right_x, y+100);
+//    nvgLineTo(s->vg, right_x-100, y+100);
+//    nvgClosePath(s->vg);
+//    nvgFillColor(s->vg, COLOR_RED_ALPHA(200));
+//    nvgFill(s->vg);
+//  }
+//}
 
 //BB START: functions added for the display of various items
 static int bb_ui_draw_measure(UIState *s,  const char* bb_value, const char* bb_uom, const char* bb_label,
