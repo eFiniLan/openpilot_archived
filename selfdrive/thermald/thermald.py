@@ -454,7 +454,7 @@ def thermald_thread():
     # dp - auto shutdown
     if health is not None and dp_auto_shutdown and dp_auto_shutdown_in > 0:
       if sec_since_boot() - off_ts > dp_auto_shutdown_in:
-        pm.should_disable_charging(health, MAX_TIME_OFFROAD_S * -1)
+        msg.thermal.chargingDisabled = True
         cloudlog.info(f"shutting device down, offroad since {off_ts}")
         # TODO: add function for blocking cloudlog instead of sleep
         time.sleep(10)
