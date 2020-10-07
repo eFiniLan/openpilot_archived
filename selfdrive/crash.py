@@ -12,9 +12,9 @@ from common.dp_common import is_online
 CRASHES_DIR = '/sdcard/crash_logs/'
 
 from selfdrive.swaglog import cloudlog
-from common.android import ANDROID
+from common.hardware import PC
 
-if os.getenv("NOLOG") or os.getenv("NOCRASH") or not ANDROID:
+if os.getenv("NOLOG") or os.getenv("NOCRASH") or PC:
   def capture_exception(*args, **kwargs):
     pass
 

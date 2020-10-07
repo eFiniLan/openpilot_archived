@@ -504,7 +504,7 @@ class CarInterface(CarInterfaceBase):
       events.add(EventName.manualSteeringRequired)
     if self.CS.brake_error:
       events.add(EventName.brakeUnavailable)
-    if self.CS.brake_hold and self.CS.CP.carFingerprint not in HONDA_BOSCH:
+    if self.CS.brake_hold and self.CS.CP.openpilotLongitudinalControl:
       events.add(EventName.brakeHold)
     if self.CS.park_brake:
       events.add(EventName.parkBrake)

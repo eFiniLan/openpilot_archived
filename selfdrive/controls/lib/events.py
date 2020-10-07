@@ -1,11 +1,13 @@
 # This Python file uses the following encoding: utf-8
 # -*- coding: utf-8 -*-
 from functools import total_ordering
+from typing import Dict, Union, Callable, Any
 
 from cereal import log, car
+import cereal.messaging as messaging
 from common.realtime import DT_CTRL
 from selfdrive.config import Conversions as CV
-from selfdrive.locationd.calibration_helpers import Filter
+from selfdrive.locationd.calibrationd import MIN_SPEED_FILTER
 from common.i18n import events
 _ = events()
 
@@ -101,18 +103,18 @@ class Events:
 @total_ordering
 class Alert:
   def __init__(self,
-               alert_text_1,
-               alert_text_2,
+               alert_text_1: str,
+               alert_text_2: str,
                alert_status,
                alert_size,
                alert_priority,
                visual_alert,
                audible_alert,
-               duration_sound,
-               duration_hud_alert,
-               duration_text,
-               alert_rate=0.,
-               creation_delay=0.):
+               duration_sound: float,
+               duration_hud_alert: float,
+               duration_text: float,
+               alert_rate: float = 0.,
+               creation_delay: float = 0.):
 
     self.alert_type = ""
     self.alert_text_1 = alert_text_1
@@ -135,14 +137,14 @@ class Alert:
     tst = car.CarControl.new_message()
     tst.hudControl.visualAlert = self.visual_alert
 
-  def __str__(self):
+  def __str__(self) -> str:
     return self.alert_text_1 + "/" + self.alert_text_2 + " " + str(self.alert_priority) + "  " + str(
       self.visual_alert) + " " + str(self.audible_alert)
 
-  def __gt__(self, alert2):
+  def __gt__(self, alert2) -> bool:
     return self.alert_priority > alert2.alert_priority
 
-  def __eq__(self, alert2):
+  def __eq__(self, alert2) -> bool:
     return self.alert_priority == alert2.alert_priority
 
 class NoEntryAlert(Alert):
@@ -178,25 +180,25 @@ class EngagementAlert(Alert):
 
 # ********** alert callback functions **********
 
-def below_steer_speed_alert(CP, sm, metric):
+def below_steer_speed_alert(CP: car.CarParams, sm: messaging.SubMaster, metric: bool) -> Alert:
   speed = int(round(CP.minSteerSpeed * (CV.MS_TO_KPH if metric else CV.MS_TO_MPH)))
-  unit = "kph" if metric else "mph"
+  unit = "km/h" if metric else "mph"
   return Alert(
     _("TAKE CONTROL"),
     _("Steer Unavailable Below %d %s") % (speed, unit),
     AlertStatus.userPrompt, AlertSize.mid,
     Priority.MID, VisualAlert.steerRequired, AudibleAlert.none, 0., 0.4, .3)
 
-def calibration_incomplete_alert(CP, sm, metric):
-  speed = int(Filter.MIN_SPEED * (CV.MS_TO_KPH if metric else CV.MS_TO_MPH))
-  unit = "kph" if metric else "mph"
+def calibration_incomplete_alert(CP: car.CarParams, sm: messaging.SubMaster, metric: bool) -> Alert:
+  speed = int(MIN_SPEED_FILTER * (CV.MS_TO_KPH if metric else CV.MS_TO_MPH))
+  unit = "km/h" if metric else "mph"
   return Alert(
     _("Calibration in Progress: %d%%") % sm['liveCalibration'].calPerc,
     _("Drive Above %d %s") % (speed, unit),
     AlertStatus.normal, AlertSize.mid,
     Priority.LOWEST, VisualAlert.none, AudibleAlert.none, 0., 0., .2)
 
-def no_gps_alert(CP, sm, metric):
+def no_gps_alert(CP: car.CarParams, sm: messaging.SubMaster, metric: bool) -> Alert:
   gps_integrated = sm['health'].hwType in [log.HealthData.HwType.uno, log.HealthData.HwType.dos]
   return Alert(
     _("Poor GPS reception"),
@@ -204,14 +206,13 @@ def no_gps_alert(CP, sm, metric):
     AlertStatus.normal, AlertSize.mid,
     Priority.LOWER, VisualAlert.none, AudibleAlert.none, 0., 0., .2, creation_delay=300.)
 
-def wrong_car_mode_alert(CP, sm, metric):
+def wrong_car_mode_alert(CP: car.CarParams, sm: messaging.SubMaster, metric: bool) -> Alert:
   text = _("Cruise Mode Disabled")
   if CP.carName == "honda":
     text = _("Main Switch Off")
   return NoEntryAlert(text, duration_hud_alert=0.)
 
-
-EVENTS = {
+EVENTS: Dict[int, Dict[str, Union[Alert, Callable[[Any, messaging.SubMaster, bool], Alert]]]] = {
   # ********** events with no alerts **********
 
   # ********** events only containing alerts displayed in all states **********
@@ -229,14 +230,6 @@ EVENTS = {
       _("Be ready to take over at any time"),
       _("Always keep hands on wheel and eyes on road"),
       AlertStatus.normal, AlertSize.mid,
-      Priority.LOWER, VisualAlert.none, AudibleAlert.none, 0., 0., 15.),
-  },
-
-  EventName.startupWhitePanda: {
-    ET.PERMANENT: Alert(
-      _("WARNING: White panda is deprecated"),
-      _("Upgrade to comma two or black panda"),
-      AlertStatus.userPrompt, AlertSize.mid,
       Priority.LOWER, VisualAlert.none, AudibleAlert.none, 0., 0., 15.),
   },
 
@@ -292,7 +285,6 @@ EVENTS = {
   EventName.communityFeatureDisallowed: {
     # LOW priority to overcome Cruise Error
     ET.PERMANENT: Alert(
-      "",
       _("Community Feature Detected"),
       _("Enable Community Features in Developer Settings"),
       AlertStatus.normal, AlertSize.mid,
@@ -346,7 +338,7 @@ EVENTS = {
       _("openpilot will not brake while gas pressed"),
       "",
       AlertStatus.normal, AlertSize.small,
-      Priority.LOWEST, VisualAlert.none, AudibleAlert.none, .0, .0, .1),
+      Priority.LOWEST, VisualAlert.none, AudibleAlert.none, .0, .0, .1, creation_delay=1.),
   },
 
   EventName.vehicleModelInvalid: {
@@ -418,7 +410,7 @@ EVENTS = {
       _("CHECK DRIVER FACE VISIBILITY"),
       _("Driver Monitor Model Output Uncertain"),
       AlertStatus.normal, AlertSize.mid,
-      Priority.LOW, VisualAlert.steerRequired, AudibleAlert.none, .4, 0., 1.),
+      Priority.LOW, VisualAlert.steerRequired, AudibleAlert.none, .4, 0., 1.5),
   },
 
   EventName.manualRestart: {
@@ -540,7 +532,7 @@ EVENTS = {
       _("TAKE CONTROL"),
       _("Attempting Refocus: Camera Focus Invalid"),
       AlertStatus.userPrompt, AlertSize.mid,
-      Priority.LOW, VisualAlert.steerRequired, AudibleAlert.chimeWarning1, .4, 2., 3.),
+      Priority.LOW, VisualAlert.steerRequired, AudibleAlert.chimeWarning1, .4, 2., 3., creation_delay=3.1),
   },
 
   EventName.outOfSpace: {
@@ -598,7 +590,12 @@ EVENTS = {
   },
 
   EventName.calibrationInvalid: {
-    ET.SOFT_DISABLE: SoftDisableAlert(_("Calibration Invalid: Reposition Device and Recalibrate")),
+    ET.PERMANENT: Alert(
+      _("Calibration Invalid"),
+      _("Reposition Device and Recalibrate"),
+      AlertStatus.normal, AlertSize.mid,
+      Priority.LOWER, VisualAlert.none, AudibleAlert.none, 0., 0., .2),
+    ET.SOFT_DISABLE: SoftDisableAlert(_("Calibration Invalid: Reposition Device & Recalibrate")),
     ET.NO_ENTRY: NoEntryAlert(_("Calibration Invalid: Reposition Device & Recalibrate")),
   },
 
@@ -726,6 +723,11 @@ EVENTS = {
   },
 
   EventName.reverseGear: {
+    ET.PERMANENT: Alert(
+      _("Reverse\nGear"),
+      "",
+      AlertStatus.normal, AlertSize.full,
+      Priority.LOWEST, VisualAlert.none, AudibleAlert.none, 0., 0., .2, creation_delay=0.5),
     ET.IMMEDIATE_DISABLE: ImmediateDisableAlert(_("Reverse Gear")),
     ET.NO_ENTRY: NoEntryAlert(_("Reverse Gear")),
   },
