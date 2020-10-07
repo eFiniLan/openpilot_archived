@@ -985,9 +985,9 @@ static void ui_draw_vision(UIState *s) {
     ui_draw_driver_view(s);
   }
 
-  if (scene->leftBlindspot || scene->rightBlindspot) {
-    ui_draw_blindspots(s);
-  }
+//  if (scene->leftBlindspot || scene->rightBlindspot) {
+//    ui_draw_blindspots(s);
+//  }
 
   if (scene->alert_size != cereal::ControlsState::AlertSize::NONE) {
     ui_draw_vision_alert(s, scene->alert_size, s->status,
