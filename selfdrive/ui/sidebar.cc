@@ -21,7 +21,7 @@ static void ui_draw_sidebar_home_button(UIState *s) {
   ui_draw_image(s->vg, home_btn.x, home_btn.y, home_btn.w, home_btn.h, s->img_button_home, alpha);
   if (s->scene.dpIsUpdating) {
     nvgBeginPath(s->vg);
-    nvgCircle(s->vg, home_btn_x + home_btn_w/2, home_btn_y + home_btn_h/2, 90);
+    nvgCircle(s->vg, home_btn.x + home_btn.w/2, home_btn.y + home_btn.h/2, 90);
     nvgFillColor(s->vg, nvgRGBA(255, 255, 255, s->scene.dp_alert_rate));
     nvgFill(s->vg);
 
@@ -29,7 +29,7 @@ static void ui_draw_sidebar_home_button(UIState *s) {
     nvgFontSize(s->vg, s->scene.dpLocale == "zh-TW"? 60 : s->scene.dpLocale == "zh-CN"? 60 : 46);
     nvgFontFaceId(s->vg, s->font_sans_bold);
     nvgTextAlign(s->vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-    nvgTextBox(s->vg, home_btn_x, home_btn_y + home_btn_h/2, home_btn_w,
+    nvgTextBox(s->vg, home_btn.x, home_btn.y + home_btn.h/2, home_btn.w,
       s->scene.dpLocale == "zh-TW"? "更新中" : s->scene.dpLocale == "zh-CN"? "更新中" : "UPDATING",
       NULL);
 
