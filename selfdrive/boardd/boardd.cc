@@ -271,9 +271,9 @@ void can_health_thread() {
   PubMaster pm({"health"});
 
   // dp
-  SubMaster sm({"dragonConf"});
-  int no_ign_cnt_max = NO_IGNITION_CNT_MAX;
-  int check_cnt = 0;
+//  SubMaster sm({"dragonConf"});
+//  int no_ign_cnt_max = NO_IGNITION_CNT_MAX;
+//  int check_cnt = 0;
 
   uint32_t no_ignition_cnt = 0;
   bool ignition_last = false;
@@ -290,17 +290,17 @@ void can_health_thread() {
 
   // run at 2hz
   while (!do_exit && panda->connected) {
-    // dp
-    if (check_cnt % 60 == 0) {
-      sm.update();
-      if (sm.updated("dragonConf") && sm["dragonConf"].getDragonConf().getDpAutoShutdown()) {
-        no_ign_cnt_max = sm["dragonConf"].getDragonConf().getDpAutoShutdownIn() * 60 * 2 - 10;  // -5 seconds, turn off earlier than EON
-      } else {
-        no_ign_cnt_max = NO_IGNITION_CNT_MAX; // use stock value
-      }
-      check_cnt = 0;
-    }
-    check_cnt++;
+//    // dp
+//    if (check_cnt % 60 == 0) {
+//      sm.update();
+//      if (sm.updated("dragonConf") && sm["dragonConf"].getDragonConf().getDpAutoShutdown()) {
+//        no_ign_cnt_max = sm["dragonConf"].getDragonConf().getDpAutoShutdownIn() * 60 * 2 - 10;  // -5 seconds, turn off earlier than EON
+//      } else {
+//        no_ign_cnt_max = NO_IGNITION_CNT_MAX; // use stock value
+//      }
+//      check_cnt = 0;
+//    }
+//    check_cnt++;
 
     MessageBuilder msg;
     auto healthData = msg.initEvent().initHealth();
