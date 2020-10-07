@@ -23,7 +23,8 @@ from selfdrive.thermald.power_monitoring import (PowerMonitoring,
                                                  get_battery_current,
                                                  get_battery_status,
                                                  get_battery_voltage,
-                                                 get_usb_present)
+                                                 get_usb_present,
+                                                 MAX_TIME_OFFROAD_S)
 from selfdrive.version import get_git_branch, terms_version, training_version
 
 ThermalConfig = namedtuple('ThermalConfig', ['cpu', 'gpu', 'mem', 'bat', 'ambient'])
@@ -211,11 +212,15 @@ def thermald_thread():
 
   # dp
   dp_temp_monitor = True
+  dp_auto_shutdown = False
+  dp_auto_shutdown_in = 90 # mins
 
   while 1:
     sm.update()
     if sm.updated['dragonConf']:
       dp_temp_monitor = sm['dragonConf'].dpTempMonitor
+      dp_auto_shutdown = sm['dragonConf'].dpAutoShutdown
+      dp_auto_shutdown_in = sm['dragonConf'].dpAutoShutdownIn * 60 # secs
     health = messaging.recv_sock(health_sock, wait=True)
     location = messaging.recv_sock(location_sock)
     location = location.gpsLocation if location else None
@@ -445,6 +450,15 @@ def thermald_thread():
       # TODO: add function for blocking cloudlog instead of sleep
       time.sleep(10)
       os.system('LD_LIBRARY_PATH="" svc power shutdown')
+
+    # dp - auto shutdown
+    if health is not None and dp_auto_shutdown and dp_auto_shutdown_in > 0:
+      if sec_since_boot() - off_ts > dp_auto_shutdown_in:
+        pm.should_disable_charging(health, MAX_TIME_OFFROAD_S * -1)
+        cloudlog.info(f"shutting device down, offroad since {off_ts}")
+        # TODO: add function for blocking cloudlog instead of sleep
+        time.sleep(10)
+        os.system('LD_LIBRARY_PATH="" svc power shutdown')
 
     msg.thermal.chargingError = current_filter.x > 0. and msg.thermal.batteryPercent < 90  # if current is positive, then battery is being discharged
     msg.thermal.started = started_ts is not None

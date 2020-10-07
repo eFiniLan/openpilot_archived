@@ -33,9 +33,7 @@ def confd_thread():
   frame = 0
   locale = getprop("persist.sys.locale").rstrip('\n') if EON else 'en-US'
 
-  last_autoshutdown = False
   last_sec = None
-  autoshutdown_frame = 0
 
   last_charging_ctrl = False
   last_started = False
@@ -221,20 +219,6 @@ def confd_thread():
             os.system("rm -fr %s &" % (DASHCAM_VIDEOS_PATH + files[0]))
           except (IndexError, FileNotFoundError, OSError):
             pass
-    '''
-    ===================================================
-    auto shutdown
-    ===================================================
-    '''
-    autoshutdown = msg.dragonConf.dpAutoShutdown
-    if frame % 20 == 0 and autoshutdown:
-      sec = msg.dragonConf.dpAutoShutdownIn * 60 * 2
-      if last_autoshutdown != autoshutdown or last_sec != sec or started or online:
-        autoshutdown_frame = frame + sec
-      if not started and not online and sec > 0 and frame >= autoshutdown_frame:
-        os.system('LD_LIBRARY_PATH="" svc power shutdown')
-      last_sec = sec
-    last_autoshutdown = autoshutdown
     '''
     ===================================================
     battery ctrl every 30 secs
