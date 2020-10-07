@@ -1,7 +1,7 @@
 import gettext
 from common.hardware_android import getprop
 
-is_android = android.ANDROID
+is_android = True #android.ANDROID
 locale_dir = '/data/openpilot/selfdrive/assets/locales'
 supported_language = ['en-US', 'zh-TW', 'zh-CN', 'ja-JP', 'ko-KR']
 locale = getprop("persist.sys.locale") if is_android else 'en-US'
