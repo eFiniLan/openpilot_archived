@@ -5,7 +5,7 @@ import cereal.messaging as messaging
 from selfdrive.controls.lib.events import Events
 from selfdrive.monitoring.driver_monitor import DriverStatus, MAX_TERMINAL_ALERTS, MAX_TERMINAL_DURATION
 from selfdrive.locationd.calibrationd import Calibration
-from common.realtime import sec_since_boot
+from common.realtime import DT_DMON, sec_since_boot
 import time
 
 

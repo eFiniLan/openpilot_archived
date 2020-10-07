@@ -10,6 +10,7 @@ from common.params import Params, put_nonblocking
 import subprocess
 import re
 import os
+from common.hardware import EON
 from common.hardware_android import getprop
 from selfdrive.thermald.power_monitoring import set_battery_charging, get_battery_charging
 from math import floor
@@ -30,7 +31,7 @@ def confd_thread():
   last_modified = None
   update_params = False
   frame = 0
-  locale = getprop("persist.sys.locale").rstrip('\n')
+  locale = getprop("persist.sys.locale").rstrip('\n') if EON else 'en-US'
 
   last_autoshutdown = False
   last_sec = None

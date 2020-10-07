@@ -3,6 +3,7 @@ import os
 import json
 import time
 from math import floor
+from common.hardware import EON
 from common.hardware_android import getprop
 
 confs = [
@@ -97,7 +98,7 @@ confs = [
   {'name': 'dp_last_modified', 'default': str(floor(time.time())), 'type': 'Text', 'conf_type': ['param']},
   {'name': 'dp_camera_offset', 'default': 6, 'type': 'Int8', 'min': -255, 'max': 255, 'conf_type': ['param', 'struct']},
 
-  {'name': 'dp_locale', 'default': getprop("persist.sys.locale").rstrip('\n'), 'type': 'Text', 'conf_type': ['param', 'struct'], 'update_once': True},
+  {'name': 'dp_locale', 'default': getprop("persist.sys.locale").rstrip('\n') if EON else 'en-US', 'type': 'Text', 'conf_type': ['param', 'struct'], 'update_once': True},
   {'name': 'dp_disable_relay', 'default': False, 'type': 'Bool', 'conf_type': ['param']},
   {'name': 'dp_charging_ctrl', 'default': False, 'type': 'Bool', 'conf_type': ['param', 'struct']},
   {'name': 'dp_charging_at', 'default': 60, 'type': 'UInt8', 'min': 0, 'max': 100, 'depends': [{'name': 'dp_charging_ctrl', 'vals': [True]}], 'conf_type': ['param', 'struct']},
