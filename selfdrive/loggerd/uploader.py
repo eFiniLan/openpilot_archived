@@ -1,23 +1,24 @@
 #!/usr/bin/env python3
-import os
-import re
-import time
-import json
-import random
 import ctypes
 import inspect
-import requests
-import traceback
-import threading
+import json
+import os
+import random
+import re
 import subprocess
+import threading
+import time
+import traceback
 
-from selfdrive.swaglog import cloudlog
-from selfdrive.loggerd.config import ROOT
+import requests
 
-from common import android
-from common.params import Params
+from cereal import log
+from common.hardware import HARDWARE
 from common.api import Api
-from common.xattr import getxattr, setxattr
+from common.params import Params
+from selfdrive.loggerd.xattr_cache import getxattr, setxattr
+from selfdrive.loggerd.config import ROOT
+from selfdrive.swaglog import cloudlog
 import cereal.messaging as messaging
 
 NetworkType = log.ThermalData.NetworkType
@@ -278,6 +279,7 @@ def uploader_fn(exit_event):
 
 def main():
   uploader_fn(threading.Event())
+
 
 if __name__ == "__main__":
   main()
