@@ -1,6 +1,8 @@
 from common.numpy_fast import interp
 import numpy as np
 from cereal import log
+import cereal.messaging as messaging
+from common.realtime import sec_since_boot
 
 CAMERA_OFFSET = 0.06  # m from center car to camera
 
@@ -52,9 +54,9 @@ class LanePlanner():
     self.p_poly = [0., 0., 0., 0.]
     self.d_poly = [0., 0., 0., 0.]
 
-    self.lane_width_estimate = 3.7
+    self.lane_width_estimate = 2.85
     self.lane_width_certainty = 1.0
-    self.lane_width = 3.7
+    self.lane_width = 2.85
 
     self.l_prob = 0.
     self.r_prob = 0.
@@ -64,6 +66,11 @@ class LanePlanner():
 
     self._path_pinv = compute_path_pinv()
     self.x_points = np.arange(50)
+
+    # dp
+    self.sm = messaging.SubMaster(['dragonConf'])
+    self.dp_camera_offset = CAMERA_OFFSET
+    self.last_ts = 0
 
   def parse_model(self, md):
     if len(md.leftLane.poly):
@@ -83,14 +90,20 @@ class LanePlanner():
 
   def update_d_poly(self, v_ego):
     # only offset left and right lane lines; offsetting p_poly does not make sense
-    self.l_poly[3] += CAMERA_OFFSET
-    self.r_poly[3] += CAMERA_OFFSET
+    if sec_since_boot() - self.last_ts >= 5.:
+      self.sm.update(0)
+      if self.sm.updated['dragonConf']:
+        self.dp_camera_offset = self.sm['dragonConf'].dpCameraOffset * 0.01
+      self.last_ts = sec_since_boot()
+    self.l_poly[3] += self.dp_camera_offset
+    self.r_poly[3] += self.dp_camera_offset
+    self.p_poly[3] += self.dp_camera_offset
 
     # Find current lanewidth
     self.lane_width_certainty += 0.05 * (self.l_prob * self.r_prob - self.lane_width_certainty)
     current_lane_width = abs(self.l_poly[3] - self.r_poly[3])
     self.lane_width_estimate += 0.005 * (current_lane_width - self.lane_width_estimate)
-    speed_lane_width = interp(v_ego, [0., 31.], [2.8, 3.5])
+    speed_lane_width = interp(v_ego, [0., 14., 20.], [2.5, 3., 3.5]) # German Standards
     self.lane_width = self.lane_width_certainty * self.lane_width_estimate + \
                       (1 - self.lane_width_certainty) * speed_lane_width
 

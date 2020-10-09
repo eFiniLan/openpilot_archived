@@ -114,6 +114,18 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     invalidGiraffeHondaDEPRECATED @49;
     canErrorPersistentDEPRECATED @83;
     startupWhitePandaDEPRECATED @82;
+
+    #dp
+    preLaneChangeLeftALC @91;
+    preLaneChangeRightALC @92;
+    manualSteeringRequired @93;
+    manualSteeringRequiredBlinkersOn @94;
+    leadCarMoving @95;
+
+    # timebomb assist
+    timebombWarn @97;
+    timebombBypassing @98;
+    timebombBypassed @99;
   }
 }
 
@@ -180,6 +192,10 @@ struct CarState {
   # blindspot sensors
   leftBlindspot @33 :Bool; # Is there something blocking the left lane change
   rightBlindspot @34 :Bool; # Is there something blocking the right lane change
+
+  # dp
+  lkMode @37 :Bool;
+  stopSteering @38 :Bool; # timebomb - stopSteering
 
   struct WheelSpeeds {
     # optional wheel speeds

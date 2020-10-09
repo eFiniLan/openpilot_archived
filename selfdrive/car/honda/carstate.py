@@ -111,7 +111,7 @@ def get_can_signals(CP):
     signals += [("DRIVERS_DOOR_OPEN", "SCM_FEEDBACK", 1)]
   elif CP.carFingerprint == CAR.ODYSSEY_CHN:
     signals += [("DRIVERS_DOOR_OPEN", "SCM_BUTTONS", 1)]
-  elif CP.carFingerprint == CAR.HRV:
+  elif CP.carFingerprint in [CAR.HRV, CAR.JADE]:
     signals += [("DRIVERS_DOOR_OPEN", "SCM_BUTTONS", 1),
                 ("WHEELS_MOVING", "STANDSTILL", 1)]
   else:
@@ -136,7 +136,7 @@ def get_can_signals(CP):
     signals += [("CAR_GAS", "GAS_PEDAL_2", 0),
                 ("MAIN_ON", "SCM_BUTTONS", 0),
                 ("BRAKE_HOLD_ACTIVE", "VSA_STATUS", 0)]
-  elif CP.carFingerprint == CAR.HRV:
+  elif CP.carFingerprint in [CAR.HRV, CAR.JADE]:
     signals += [("CAR_GAS", "GAS_PEDAL", 0),
                 ("MAIN_ON", "SCM_BUTTONS", 0),
                 ("BRAKE_HOLD_ACTIVE", "VSA_STATUS", 0)]
@@ -176,6 +176,9 @@ class CarState(CarStateBase):
     self.v_cruise_pcm_prev = 0
     self.cruise_mode = 0
 
+    #dp
+    self.lkMode = True
+
   def update(self, cp, cp_cam, cp_body):
     ret = car.CarState.new_message()
 
@@ -195,7 +198,7 @@ class CarState(CarStateBase):
     elif self.CP.carFingerprint == CAR.ODYSSEY_CHN:
       ret.standstill = cp.vl["ENGINE_DATA"]['XMISSION_SPEED'] < 0.1
       ret.doorOpen = bool(cp.vl["SCM_BUTTONS"]['DRIVERS_DOOR_OPEN'])
-    elif self.CP.carFingerprint == CAR.HRV:
+    elif self.CP.carFingerprint in [CAR.HRV, CAR.JADE]:
       ret.doorOpen = bool(cp.vl["SCM_BUTTONS"]['DRIVERS_DOOR_OPEN'])
     else:
       ret.standstill = not cp.vl["STANDSTILL"]['WHEELS_MOVING']
@@ -231,6 +234,14 @@ class CarState(CarStateBase):
     ret.steeringAngle = cp.vl["STEERING_SENSORS"]['STEER_ANGLE']
     ret.steeringRate = cp.vl["STEERING_SENSORS"]['STEER_ANGLE_RATE']
 
+    # dp - when user presses LKAS button on steering wheel
+    if self.cruise_setting == 1:
+      if cp.vl["SCM_BUTTONS"]["CRUISE_SETTING"] == 0:
+        if self.lkMode:
+          self.lkMode = False
+        else:
+          self.lkMode = True
+
     self.cruise_setting = cp.vl["SCM_BUTTONS"]['CRUISE_SETTING']
     self.cruise_buttons = cp.vl["SCM_BUTTONS"]['CRUISE_BUTTONS']
 
@@ -254,7 +265,7 @@ class CarState(CarStateBase):
 
     self.pedal_gas = cp.vl["POWERTRAIN_DATA"]['PEDAL_GAS']
     # crv doesn't include cruise control
-    if self.CP.carFingerprint in (CAR.CRV, CAR.CRV_EU, CAR.HRV, CAR.ODYSSEY, CAR.ACURA_RDX, CAR.RIDGELINE, CAR.PILOT_2019, CAR.ODYSSEY_CHN):
+    if self.CP.carFingerprint in (CAR.CRV, CAR.CRV_EU, CAR.HRV, CAR.JADE, CAR.ODYSSEY, CAR.ACURA_RDX, CAR.RIDGELINE, CAR.PILOT_2019, CAR.ODYSSEY_CHN):
       ret.gas = self.pedal_gas / 256.
     else:
       ret.gas = cp.vl["GAS_PEDAL_2"]['CAR_GAS'] / 256.

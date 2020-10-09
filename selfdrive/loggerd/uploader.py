@@ -1,24 +1,24 @@
 #!/usr/bin/env python3
+import os
+import re
+import time
+import json
+import random
 import ctypes
 import inspect
-import json
-import os
-import random
-import re
-import subprocess
-import threading
-import time
-import traceback
-
 import requests
+import traceback
+import threading
+import subprocess
 
-from cereal import log
-from common.hardware import HARDWARE
-from common.api import Api
-from common.params import Params
-from selfdrive.loggerd.xattr_cache import getxattr, setxattr
-from selfdrive.loggerd.config import ROOT
 from selfdrive.swaglog import cloudlog
+from selfdrive.loggerd.config import ROOT
+
+from common import android
+from common.params import Params
+from common.api import Api
+from common.xattr import getxattr, setxattr
+import cereal.messaging as messaging
 
 NetworkType = log.ThermalData.NetworkType
 UPLOAD_ATTR_NAME = 'user.upload'
@@ -236,6 +236,9 @@ def uploader_fn(exit_event):
 
   uploader = Uploader(dongle_id, ROOT)
 
+  # dp
+  sm = messaging.SubMaster(['dragonConf'])
+
   backoff = 0.1
   counter = 0
   should_upload = False
@@ -246,6 +249,12 @@ def uploader_fn(exit_event):
     if check_network:
       on_hotspot = is_on_hotspot()
       on_wifi = is_on_wifi()
+
+      sm.update(1000)
+      if sm.updated['dragonConf']:
+        on_wifi = True if sm['dragonConf'].dpUploadOnMobile else on_wifi
+        on_hotspot = False if sm['dragonConf'].dpUploadOnHotspot else on_hotspot
+
       should_upload = on_wifi and not on_hotspot
 
     d = uploader.next_file_to_upload(with_raw=allow_raw_upload and should_upload)
@@ -269,7 +278,6 @@ def uploader_fn(exit_event):
 
 def main():
   uploader_fn(threading.Event())
-
 
 if __name__ == "__main__":
   main()

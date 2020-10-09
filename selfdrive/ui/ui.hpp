@@ -33,6 +33,7 @@
 #define COLOR_WHITE_ALPHA(x) nvgRGBA(255, 255, 255, x)
 #define COLOR_YELLOW nvgRGBA(218, 202, 37, 255)
 #define COLOR_RED nvgRGBA(201, 34, 49, 255)
+#define COLOR_RED_ALPHA(x) nvgRGBA(201, 34, 49, x)
 #define COLOR_OCHRE nvgRGBA(218, 111, 37, 255)
 
 #define UI_BUF_COUNT 4
@@ -61,6 +62,18 @@ const int MODEL_LANE_PATH_CNT = 2;
 const int TRACK_POINTS_MAX_CNT = 50 * 2;
 
 const int SET_SPEED_NA = 255;
+
+// dp - dynamic follow btn
+const int df_btn_h = 180;
+const int df_btn_w = 180;
+const int df_btn_x = 1650;
+const int df_btn_y = 750;
+// dp - accel profile btn
+const int ap_btn_h = 180;
+const int ap_btn_w = 180;
+const int ap_btn_x = 1450;
+const int ap_btn_y = 750;
+const int info_bar_h = 80;
 
 typedef struct Color {
   uint8_t r, g, b;
@@ -121,6 +134,48 @@ typedef struct UIScene {
   float left_lane_points[MODEL_PATH_DISTANCE];
   float path_points[MODEL_PATH_DISTANCE];
   float right_lane_points[MODEL_PATH_DISTANCE];
+
+  // dp
+  bool dpDashcam;
+  bool dpAppWaze;
+  bool dpDrivingUi;
+  bool dpUiScreenOffReversing;
+  bool dpUiScreenOffDriving;
+  bool dpUiSpeed;
+  bool dpUiEvent;
+  bool dpUiMaxSpeed;
+  bool dpUiFace;
+  bool dpUiLane;
+  bool dpUiPath;
+  bool dpUiLead;
+  bool dpUiDev;
+  bool dpUiDevMini;
+  bool dpUiBlinker;
+  int dpUiBrightness;
+  int dpUiVolumeBoost;
+  std::string dpIpAddr;
+  // for minimal UI
+  float angleSteersDes;
+  float angleSteers;
+  // for black screen on reversing
+  bool isReversing;
+  // for blinker, from kegman
+  bool leftBlinker;
+  bool rightBlinker;
+  bool brakeLights;
+  int blinker_blinkingrate;
+  // for blind spot
+  bool leftBlindspot;
+  bool rightBlindspot;
+
+  // for updating icon
+  int dp_alert_rate;
+  int dp_alert_type;
+  std::string dpLocale;
+  bool dpIsUpdating;
+  bool dpAthenad;
+  int dpDynamicFollow;
+  int dpAccelProfile;
 } UIScene;
 
 typedef struct {
@@ -147,6 +202,7 @@ typedef struct UIState {
   NVGcontext *vg;
 
   // fonts and images
+  int font_courbd;
   int font_sans_regular;
   int font_sans_semibold;
   int font_sans_bold;
