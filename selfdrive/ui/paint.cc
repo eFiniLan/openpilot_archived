@@ -540,6 +540,10 @@ static void ui_draw_vision_header(UIState *s) {
 
 static void ui_draw_vision_footer(UIState *s) {
   ui_draw_vision_face(s);
+  ui_draw_df_button(s);
+  ui_draw_ap_button(s);
+  ui_draw_bbui(s);
+  ui_draw_infobar(s);
 }
 
 void ui_draw_vision_alert(UIState *s, cereal::ControlsState::AlertSize va_size, int va_color,

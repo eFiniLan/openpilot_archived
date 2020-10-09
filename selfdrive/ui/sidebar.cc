@@ -165,7 +165,7 @@ static void ui_draw_sidebar_temp_metric(UIState *s) {
       {cereal::ThermalData::ThermalStatus::RED, 2},
       {cereal::ThermalData::ThermalStatus::DANGER, 3}};
   std::string temp_val = std::to_string((int)s->scene.thermal.getAmbient()) + "°C";
-  std::string temp_label = std::to_string(s->scene.dpLocale == "zh-TW"? "溫度" : s->scene.dpLocale == "zh-CN"? "温度" : "TEMP");
+  std::string temp_label = s->scene.dpLocale == "zh-TW"? "溫度" : s->scene.dpLocale == "zh-CN"? "温度" : "TEMP";
   ui_draw_sidebar_metric(s, temp_label.c_str(), temp_val.c_str(), temp_severity_map[s->scene.thermal.getThermalStatus()], 0, NULL);
 }
 
@@ -180,10 +180,10 @@ static void ui_draw_sidebar_panda_metric(UIState *s) {
   } else if (s->started) {
     if (s->scene.satelliteCount < 6) {
       panda_severity = 1;
-      snprintf(panda_message_str, sizeof(panda_message_str), "%s %d", "VEHICLE\nGPS:", s->scene.satelliteCount);
+      panda_message = "VEHICLE\nGPS: " + std::to_string(s->scene.satelliteCount);
     } else {
       panda_severity = 0;
-      snprintf(panda_message_str, sizeof(panda_message_str), "%s %d", "VEHICLE\nGPS:", s->scene.satelliteCount);
+      panda_message = "VEHICLE\nGPS: " + std::to_string(s->scene.satelliteCount);
     }
   }
   ui_draw_sidebar_metric(s, NULL, NULL, panda_severity, panda_y_offset, panda_message.c_str());

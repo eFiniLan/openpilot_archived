@@ -257,7 +257,7 @@ int main(int argc, char* argv[]) {
     double u1 = millis_since_boot();
 
     ui_update(s);
-    auto alert_sound = scene.controls_state.getAlertSound();
+    auto alert_sound = s->scene.controls_state.getAlertSound();
     if (s->scene.alert_type.compare(s->scene.controls_state.getAlertType()) != 0) {
       if (alert_sound == AudibleAlert::NONE) {
       } else {
