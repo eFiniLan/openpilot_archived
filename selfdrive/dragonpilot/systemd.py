@@ -113,6 +113,9 @@ def confd_thread():
             val = params.get(conf['name'], encoding='utf8')
             if val is not None:
               val = val.rstrip('\x00')
+            else:
+              val = conf.get('default')
+              params.put(conf['name'], str(val))
             struct_val = to_struct_val(conf['name'], val)
             orig_val = struct_val
             if conf.get('min') is not None:
