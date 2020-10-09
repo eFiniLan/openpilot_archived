@@ -364,7 +364,7 @@ void bb_ui_draw_measures_right(UIState *s, int bb_x, int bb_y, int bb_w ) {
 }
 
 void ui_draw_bbui(UIState *s) {
-    const UIScene *scene = &s->scene;
+//    const UIScene *scene = &s->scene;
     const int bb_dml_w = 184;
     const int bb_dml_x = s->scene.viz_rect.x + (bdr_s*2);
 //    const int bb_dml_x = (scene->ui_viz_rx + (bdr_s * 2));
