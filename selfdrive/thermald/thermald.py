@@ -445,6 +445,22 @@ def thermald_thread():
       time.sleep(10)
       os.system('LD_LIBRARY_PATH="" svc power shutdown')
 
+    if off_ts is not None and sec_since_boot() - off_ts >= 10:
+      msg.thermal.chargingDisabled = True
+      print("charging disabled!")
+      shutdown = False
+      if health is not None:
+        print("health.health.usbPowerMode: %s" % health.health.usbPowerMode)
+        print("log.HealthData.UsbPowerMode.client: %s" % log.HealthData.UsbPowerMode.client)
+        if health.health.usbPowerMode == log.HealthData.UsbPowerMode.client:
+          shutdown = True
+      else:
+        shutdown = True
+      if shutdown:
+        print("about to shutdown")
+        time.sleep(10)
+        # os.system('LD_LIBRARY_PATH="" svc power shutdown')
+
     msg.thermal.chargingError = current_filter.x > 0. and msg.thermal.batteryPercent < 90  # if current is positive, then battery is being discharged
     msg.thermal.started = started_ts is not None
     msg.thermal.startedTs = int(1e9*(started_ts or 0))

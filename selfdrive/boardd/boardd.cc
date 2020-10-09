@@ -388,7 +388,7 @@ void hardware_control_thread() {
   SubMaster sm({"thermal", "frontFrame"});
 
   // Other pandas don't have hardware to control
-  if (panda->hw_type != cereal::HealthData::HwType::UNO && panda->hw_type != cereal::HealthData::HwType::DOS) return;
+//  if (panda->hw_type != cereal::HealthData::HwType::UNO && panda->hw_type != cereal::HealthData::HwType::DOS) return;
 
   uint64_t last_front_frame_t = 0;
   uint16_t prev_fan_speed = 999;
@@ -402,7 +402,7 @@ void hardware_control_thread() {
   while (!do_exit && panda->connected) {
     cnt++;
     sm.update(1000); // TODO: what happens if EINTR is sent while in sm.update?
-
+    LOGW(sm.updated("thermal")? "1" : "0");
     if (sm.updated("thermal")){
       // Fan speed
       uint16_t fan_speed = sm["thermal"].getThermal().getFanSpeed();
@@ -414,6 +414,7 @@ void hardware_control_thread() {
 #ifdef QCOM
       // Charging mode
       bool charging_disabled = sm["thermal"].getThermal().getChargingDisabled();
+      LOGW(charging_disabled? "TRUE": "FALSE");
       if (charging_disabled != prev_charging_disabled){
         if (charging_disabled){
           panda->set_usb_power_mode(cereal::HealthData::UsbPowerMode::CLIENT);
@@ -426,6 +427,7 @@ void hardware_control_thread() {
       }
 #endif
     }
+    if (panda->hw_type != cereal::HealthData::HwType::UNO && panda->hw_type != cereal::HealthData::HwType::DOS) return;
     if (sm.updated("frontFrame")){
       auto event = sm["frontFrame"];
       int cur_integ_lines = event.getFrontFrame().getIntegLines();

@@ -56,7 +56,7 @@ class Controls:
                                      'dMonitoringState', 'plan', 'pathPlan', 'liveLocationKalman', 'dragonConf'])
 
       ignore_alive = None if params.get('dp_driver_monitor') == b'1' else ['dMonitoringState']
-      self.sm = messaging.SubMaster(socks, ignore_alive=ignore_alive)
+      self.sm = messaging.SubMaster(socks)
 
     self.can_sock = can_sock
     if can_sock is None:
