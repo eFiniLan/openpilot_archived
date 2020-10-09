@@ -10,11 +10,11 @@ from common.params import Params, put_nonblocking
 import subprocess
 import re
 import os
-from common.android import getprop
 from selfdrive.thermald.power_monitoring import set_battery_charging, get_battery_charging
 from math import floor
 params = Params()
 from common.realtime import sec_since_boot
+from common.i18n import locale
 
 DASHCAM_VIDEOS_PATH = '/sdcard/dashcam/'
 DASHCAM_DURATION = 180 # max is 180
@@ -30,7 +30,6 @@ def confd_thread():
   last_modified = None
   update_params = False
   frame = 0
-  locale = getprop("persist.sys.locale").rstrip('\n')
 
   # last_autoshutdown = False
   # last_sec = None
