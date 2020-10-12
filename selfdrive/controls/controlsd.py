@@ -154,7 +154,7 @@ class Controls:
 
     # dp
     self.dp_lead_count = 0
-    self.dp_camera_offset = CAMERA_OFFSET
+    self.dp_camera_offset = CAMERA_OFFSET * 100
     self.sm['dragonConf'].dpAtl = False
     self.sm['dragonConf'].dpCameraOffset = 6
 
@@ -454,7 +454,7 @@ class Controls:
     meta = self.sm['model'].meta
     if len(meta.desirePrediction) and ldw_allowed:
       if self.sm.updated['dragonConf']:
-        self.dp_camera_offset = self.sm['dragonConf'].dpCameraOffset * 0.01
+        self.dp_camera_offset = self.sm['dragonConf'].dpCameraOffset * 0.01 if self.sm['dragonConf'].dpCameraOffset != 0 else 0
       l_lane_change_prob = meta.desirePrediction[Desire.laneChangeLeft - 1]
       r_lane_change_prob = meta.desirePrediction[Desire.laneChangeRight - 1]
       l_lane_close = left_lane_visible and (self.sm['pathPlan'].lPoly[3] < (1.08 - self.dp_camera_offset))

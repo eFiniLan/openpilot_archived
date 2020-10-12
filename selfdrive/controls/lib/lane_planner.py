@@ -1,8 +1,8 @@
 from common.numpy_fast import interp
 import numpy as np
 from cereal import log
-import cereal.messaging as messaging
-from common.realtime import sec_since_boot
+from common.dp_common import get_last_modified, param_get_if_updated
+from common.dp_time import LAST_MODIFIED_LANE_PLANNER
 
 CAMERA_OFFSET = 0.06  # m from center car to camera
 
@@ -68,9 +68,11 @@ class LanePlanner():
     self.x_points = np.arange(50)
 
     # dp
-    self.sm = messaging.SubMaster(['dragonConf'])
-    self.dp_camera_offset = CAMERA_OFFSET
-    self.last_ts = 0
+    self.dp_camera_offset = CAMERA_OFFSET * 100
+    self.last_modified_dp_camera_offset = None
+    self.modified = None
+    self.last_modified = None
+    self.last_modified_check = None
 
   def parse_model(self, md):
     if len(md.leftLane.poly):
@@ -90,14 +92,14 @@ class LanePlanner():
 
   def update_d_poly(self, v_ego):
     # only offset left and right lane lines; offsetting p_poly does not make sense
-    if sec_since_boot() - self.last_ts >= 5.:
-      self.sm.update(0)
-      if self.sm.updated['dragonConf']:
-        self.dp_camera_offset = self.sm['dragonConf'].dpCameraOffset * 0.01
-      self.last_ts = sec_since_boot()
-    self.l_poly[3] += self.dp_camera_offset
-    self.r_poly[3] += self.dp_camera_offset
-    self.p_poly[3] += self.dp_camera_offset
+    self.last_modified_check, self.modified = get_last_modified(LAST_MODIFIED_LANE_PLANNER, self.last_modified_check, self.modified)
+    if self.last_modified != self.modified:
+      self.dp_camera_offset, self.last_modified_dp_camera_offset = param_get_if_updated("dp_camera_offset", "int", self.dp_camera_offset, self.last_modified_dp_camera_offset)
+      self.last_modified = self.modified
+    offset = self.dp_camera_offset * 0.01 if self.dp_camera_offset != 0 else 0
+    self.l_poly[3] += offset
+    self.r_poly[3] += offset
+    self.p_poly[3] += offset
 
     # Find current lanewidth
     self.lane_width_certainty += 0.05 * (self.l_prob * self.r_prob - self.lane_width_certainty)

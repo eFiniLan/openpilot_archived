@@ -44,7 +44,7 @@ last_eon_fan_val = None
 
 params = Params()
 from common.dp_time import LAST_MODIFIED_THERMALD
-from common.dp_common import get_last_modified, param_get
+from common.dp_common import get_last_modified, param_get_if_updated
 
 def get_thermal_config():
   # (tz, scale)
@@ -213,17 +213,21 @@ def thermald_thread():
   dp_temp_monitor = True
   dp_last_modified_temp_monitor = None
   dp_last_modified_auto_shutdown = None
+  dp_last_modified_auto_shutdown_in = None
   dp_auto_shutdown = False
-  dp_auto_shutdown_in = 5400
-  dp_auto_shutdown_in_last = dp_auto_shutdown_in
-  last_ts = 0.
+  dp_auto_shutdown_in = 90
+  modified = None
+  last_modified = None
+  last_modified_check = None
 
   while 1:
     # dp - load temp monitor conf
-    last_ts, dp_last_modified = get_last_modified(last_ts, LAST_MODIFIED_THERMALD)
-    if dp_last_modified_temp_monitor != dp_last_modified:
-      dp_temp_monitor = param_get("dp_temp_monitor", "bool", True)
-      dp_last_modified_temp_monitor = dp_last_modified
+    last_modified_check, modified = get_last_modified(LAST_MODIFIED_THERMALD, last_modified_check, modified)
+    if last_modified != modified:
+      dp_temp_monitor, dp_last_modified_temp_monitor = param_get_if_updated("dp_temp_monitor", "bool", dp_temp_monitor, dp_last_modified_temp_monitor)
+      dp_auto_shutdown, dp_last_modified_auto_shutdown = param_get_if_updated("dp_auto_shutdown", "bool", dp_auto_shutdown, dp_last_modified_auto_shutdown)
+      dp_auto_shutdown_in, dp_last_modified_auto_shutdown_in = param_get_if_updated("dp_auto_shutdown_in", "int", dp_auto_shutdown_in, dp_last_modified_auto_shutdown_in)
+      last_modified = modified
 
     health = messaging.recv_sock(health_sock, wait=True)
     location = messaging.recv_sock(location_sock)
@@ -456,29 +460,17 @@ def thermald_thread():
       os.system('LD_LIBRARY_PATH="" svc power shutdown')
 
     # dp
-    if off_ts is not None:
-      # auto shutdown conf
-      if dp_last_modified_auto_shutdown != dp_last_modified:
-        dp_auto_shutdown = param_get("dp_auto_shutdown", "bool", False)
-        if dp_auto_shutdown:
-          dp_auto_shutdown_in = param_get("dp_auto_shutdown_in", "int", 90) * 60
-          # reset off_ts if dp_auto_shutdown_is has changed.
-          if dp_auto_shutdown_in_last != dp_auto_shutdown_in:
-            off_ts = sec_since_boot()
-          dp_auto_shutdown_in_last = dp_auto_shutdown_in
-        dp_last_modified_auto_shutdown = dp_last_modified
-      # auto shutdown logic
-      if dp_auto_shutdown and sec_since_boot() - off_ts >= dp_auto_shutdown_in:
-        msg.thermal.chargingDisabled = True
-        shutdown = False
-        if health is not None:
-          if health.health.usbPowerMode == log.HealthData.UsbPowerMode.client or health.health.usbPowerMode is None:
-            shutdown = True
-        else:
+    if off_ts is not None and dp_auto_shutdown and sec_since_boot() - off_ts >= dp_auto_shutdown_in * 60:
+      msg.thermal.chargingDisabled = True
+      shutdown = False
+      if health is not None:
+        if health.health.usbPowerMode == log.HealthData.UsbPowerMode.client or health.health.usbPowerMode is None:
           shutdown = True
-        if shutdown:
-          time.sleep(10)
-          os.system('LD_LIBRARY_PATH="" svc power shutdown')
+      else:
+        shutdown = True
+      if shutdown:
+        time.sleep(10)
+        os.system('LD_LIBRARY_PATH="" svc power shutdown')
 
     msg.thermal.chargingError = current_filter.x > 0. and msg.thermal.batteryPercent < 90  # if current is positive, then battery is being discharged
     msg.thermal.started = started_ts is not None

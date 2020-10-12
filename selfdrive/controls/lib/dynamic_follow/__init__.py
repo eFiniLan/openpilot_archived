@@ -6,7 +6,7 @@ from common.numpy_fast import interp, clip
 from selfdrive.config import Conversions as CV
 from common.params import Params
 from common.dp_time import LAST_MODIFIED_DYNAMIC_FOLLOW
-from common.dp_common import get_last_modified, param_get
+from common.dp_common import get_last_modified, param_get, param_get_if_updated
 
 from selfdrive.controls.lib.dynamic_follow.auto_df import predict
 from selfdrive.controls.lib.dynamic_follow.support import LeadData, CarData, dfData, dfProfiles
@@ -45,9 +45,13 @@ class DynamicFollow:
 
     # dp params
     self.last_ts = 0.
-    self.dp_last_modified = None
     self.modified = None
+    self.last_modified = None
+    self.last_modified_check = None
     self.dp_dynamic_follow = PROFILE_OFF
+    self.dp_dynamic_follow_last_modified = None
+    self.dp_dynamic_follow_multiplier_last_modified = None
+    self.dp_dynamic_follow_min_tr_last_modified = None
     self.params = Params()
 
     self._setup_changing_variables()
@@ -324,12 +328,13 @@ class DynamicFollow:
     self.car_data.cruise_enabled = CS.cruiseState.enabled
 
   def _get_live_params(self):
-    self.last_ts, self.modified = get_last_modified(self.last_ts, LAST_MODIFIED_DYNAMIC_FOLLOW)
-    if self.dp_last_modified != self.modified:
-      self.dp_dynamic_follow = param_get("dp_dynamic_follow", "int", PROFILE_OFF)
-      self.global_df_mod = param_get("dp_dynamic_follow_multiplier", "float", 1.)
+    self.last_modified_check, self.modified = get_last_modified(LAST_MODIFIED_DYNAMIC_FOLLOW, self.last_modified_check, self.modified)
+    if self.last_modified != self.modified:
+      self.dp_dynamic_follow, self.dp_dynamic_follow_last_modified = param_get_if_updated("dp_dynamic_follow", "int", self.dp_dynamic_follow, self.dp_dynamic_follow_last_modified)
+      self.global_df_mod, self.dp_dynamic_follow_multiplier_last_modified = param_get_if_updated("dp_dynamic_follow_multiplier", "float", self.global_df_mod, self.dp_dynamic_follow_multiplier_last_modified)
       if self.global_df_mod != 1.:
         self.global_df_mod = clip(self.global_df_mod, .85, 1.2)
-      self.global_df_mod = param_get("dp_dynamic_follow_min_tr", "float", .9)
-      if self.global_df_mod != .9:
-        self.global_df_mod = clip(self.global_df_mod, .85, 1.6)
+      self.min_TR, self.dp_dynamic_follow_min_tr_last_modified = param_get_if_updated("dp_dynamic_follow_min_tr", "float", self.min_TR, self.dp_dynamic_follow_min_tr_last_modified)
+      if self.min_TR != .9:
+        self.min_TR = clip(self.min_TR, .85, 1.6)
+      self.last_modified = self.modified

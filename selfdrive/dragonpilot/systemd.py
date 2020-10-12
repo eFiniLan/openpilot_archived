@@ -32,14 +32,15 @@ def confd_thread():
   last_dp_msg = None
   frame = 0
   update_params = False
+  modified = None
   last_modified = None
+  last_modified_check = None
   started = False
   free_space = 1
   battery_percent = 0
   overheat = False
   last_charging_ctrl = False
   last_started = False
-  last_ts = None
   dashcam = Dashcam()
 
   while True:
@@ -70,11 +71,11 @@ def confd_thread():
     check dp_last_modified every second
     ===================================================
     '''
-    if not update_params and frame % HERTZ == 0:
-      ts, modified = get_last_modified(last_ts, LAST_MODIFIED_SYSTEMD)
+    if not update_params:
+      last_modified_check, modified = get_last_modified(LAST_MODIFIED_SYSTEMD, last_modified_check, modified)
       if last_modified != modified:
         update_params = True
-      last_modified = modified
+        last_modified = modified
 
     '''
     ===================================================

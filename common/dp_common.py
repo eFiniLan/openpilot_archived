@@ -5,7 +5,8 @@ from common.params import Params
 from common.realtime import sec_since_boot
 import os
 params = Params()
-LAST_MODIFIED = "/data/params/d/dp_last_modified"
+PARAM_PATH = "/data/params/d/"
+LAST_MODIFIED = PARAM_PATH + "dp_last_modified"
 
 def is_online():
   try:
@@ -45,12 +46,22 @@ def common_interface_get_params_lqr(ret):
   return ret
 
 
-def get_last_modified(last_ts, delay):
-  ts = sec_since_boot()
-  modified = None
-  if last_ts is None or ts - last_ts >= delay:
-    modified = os.stat(LAST_MODIFIED).st_mtime
-  return ts, modified
+def get_last_modified(delay, old_check, old_modified):
+  new_check = sec_since_boot()
+  if old_check is None or new_check - old_check >= delay:
+    return new_check, os.stat(LAST_MODIFIED).st_mtime
+  else:
+    return old_check, old_modified
+
+def param_get_if_updated(param, type, old_val, old_modified):
+  modified = os.stat(PARAM_PATH + param).st_mtime
+  if old_modified != modified:
+    new_val = param_get(param, type, old_val)
+    new_modified = modified
+  else:
+    new_val = old_val
+    new_modified = old_modified
+  return new_val, new_modified
 
 def param_get(param_name, type, default):
   try:
