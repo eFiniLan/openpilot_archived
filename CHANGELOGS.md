@@ -2,6 +2,10 @@
 ========================
 * 基於最新 openpilot 0.7.9 devel.
 * Based on latest openpilot 0.7.9 devel.
+* 提高 systemd 更新速度。
+* Increased systemd refresh rate.
+* 修正 Prius 特定情況下無法操控方向盤的問題。
+* Fixed unable to regain Prius steering control under certain situation.
 
 2020-09-25 (0.7.8.0)
 ========================
