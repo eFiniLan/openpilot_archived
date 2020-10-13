@@ -118,7 +118,6 @@ static bool handle_dp_btn_touch(UIState *s, int touch_x, int touch_y) {
   //dfButton manager  // code below thanks to kumar: https://github.com/arne182/openpilot/commit/71d5aac9f8a3f5942e89634b20cbabf3e19e3e78
   if (s->started && s->active_app != cereal::UiLayoutState::App::SETTINGS) {
     if (s->scene.dpDynamicFollow > 0 && touch_x >= df_btn_x && touch_x <= (df_btn_x + df_btn_w) && touch_y >= df_btn_y && touch_y <= (df_btn_y + df_btn_h)) {
-      s->scene.uilayout_sidebarcollapsed = true;  // collapse sidebar when tapping df button
       int val = s->scene.dpDynamicFollow;
       val++;
       if (val >= 5) {
@@ -134,7 +133,6 @@ static bool handle_dp_btn_touch(UIState *s, int touch_x, int touch_y) {
       write_db_value("dp_last_modified", time_str, 11);
       return true;
     } else if (s->scene.dpAccelProfile > 0 && touch_x >= ap_btn_x && touch_x <= (ap_btn_x + ap_btn_w) && touch_y >= ap_btn_y && touch_y <= (ap_btn_y + ap_btn_h)) {
-      s->scene.uilayout_sidebarcollapsed = true;  // collapse sidebar when tapping df button
       int val = s->scene.dpAccelProfile;
       val++;
       if (val >= 4) {

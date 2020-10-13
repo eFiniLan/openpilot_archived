@@ -5,8 +5,8 @@ from selfdrive.controls.lib.drive_helpers import MPC_COST_LONG
 from common.numpy_fast import interp, clip
 from selfdrive.config import Conversions as CV
 from common.params import Params
-from common.dp_time import DELAY_DYNAMIC_FOLLOW
-from common.dp_common import last_modified, param_get
+from common.dp_time import LAST_MODIFIED_DYNAMIC_FOLLOW
+from common.dp_common import get_last_modified, param_get
 
 from selfdrive.controls.lib.dynamic_follow.auto_df import predict
 from selfdrive.controls.lib.dynamic_follow.support import LeadData, CarData, dfData, dfProfiles
@@ -324,7 +324,7 @@ class DynamicFollow:
     self.car_data.cruise_enabled = CS.cruiseState.enabled
 
   def _get_live_params(self):
-    self.last_ts, self.modified = last_modified(self.last_ts, DELAY_DYNAMIC_FOLLOW)
+    self.last_ts, self.modified = get_last_modified(self.last_ts, LAST_MODIFIED_DYNAMIC_FOLLOW)
     if self.dp_last_modified != self.modified:
       self.dp_dynamic_follow = param_get("dp_dynamic_follow", "int", PROFILE_OFF)
       self.global_df_mod = param_get("dp_dynamic_follow_multiplier", "float", 1.)

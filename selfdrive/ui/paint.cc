@@ -15,7 +15,7 @@ extern "C"{
 
 #include "paint.hpp"
 #include "sidebar.hpp"
-#include "dp.hpp"
+#include "paint_dp.hpp"
 
 // TODO: this is also hardcoded in common/transformations/camera.py
 // TODO: choose based on frame input size
@@ -327,21 +327,24 @@ static void ui_draw_vision_lanes(UIState *s) {
     update_all_lane_lines_data(s, scene->model.getRightLane(), scene->right_lane_points, pvd + MODEL_LANE_PATH_CNT);
   }
 
+  if (s->scene.dpUiLane) {
   // Draw left lane edge
   ui_draw_lane(s, pvd, nvgRGBAf(1.0, 1.0, 1.0, scene->model.getLeftLane().getProb()));
 
   // Draw right lane edge
   ui_draw_lane(s, pvd + MODEL_LANE_PATH_CNT, nvgRGBAf(1.0, 1.0, 1.0, scene->model.getRightLane().getProb()));
-
+  }
   if(s->sm->updated("radarState")) {
     update_all_track_data(s);
   }
 
   // Draw vision path
+  if (s->scene.dpUiPath) {
   ui_draw_track(s, false, &s->track_vertices[0]);
   if (scene->controls_state.getEnabled()) {
     // Draw MPC path when engaged
     ui_draw_track(s, true, &s->track_vertices[1]);
+  }
   }
 }
 
@@ -368,7 +371,7 @@ static void ui_draw_world(UIState *s) {
   ui_draw_vision_lanes(s);
 
   // Draw lead indicators if openpilot is handling longitudinal
-  if (s->longitudinal_control) {
+  if (s->scene.dpUiLead) {
     if (scene->lead_data[0].getStatus()) {
       draw_lead(s, scene->lead_data[0]);
     }
@@ -425,6 +428,7 @@ static void ui_draw_vision_speed(UIState *s) {
   }
   const int viz_speed_w = 280;
   const int viz_speed_x = viz_rect.centerX() - viz_speed_w/2;
+  if (s->scene.dpUiSpeed) {
   char speed_str[32];
 
   nvgBeginPath(s->vg);
@@ -434,6 +438,32 @@ static void ui_draw_vision_speed(UIState *s) {
   snprintf(speed_str, sizeof(speed_str), "%d", (int)speed);
   ui_draw_text(s->vg, viz_rect.centerX(), 240, speed_str, 96*2.5, COLOR_WHITE, s->font_sans_bold);
   ui_draw_text(s->vg, viz_rect.centerX(), 320, s->is_metric?"km/h":"mph", 36*2.5, COLOR_WHITE_ALPHA(200), s->font_sans_regular);
+  }
+  // dp blinker, from kegman
+  if (s->scene.dpUiBlinker) {
+    if(s->scene.leftBlinker) {
+      nvgBeginPath(s->vg);
+      nvgMoveTo(s->vg, viz_speed_x, viz_rect.y + header_h/4);
+      nvgLineTo(s->vg, viz_speed_x - viz_speed_w/2, viz_rect.y + header_h/4 + header_h/4);
+      nvgLineTo(s->vg, viz_speed_x, viz_rect.y + header_h/2 + header_h/4);
+      nvgClosePath(s->vg);
+      nvgFillColor(s->vg, nvgRGBA(23,134,68,s->scene.blinker_blinkingrate>=50?210:60));
+      nvgFill(s->vg);
+    }
+    if(s->scene.rightBlinker) {
+      nvgBeginPath(s->vg);
+      nvgMoveTo(s->vg, viz_speed_x+viz_speed_w, viz_rect.y + header_h/4);
+      nvgLineTo(s->vg, viz_speed_x+viz_speed_w + viz_speed_w/2, viz_rect.y + header_h/4 + header_h/4);
+      nvgLineTo(s->vg, viz_speed_x+viz_speed_w, viz_rect.y + header_h/2 + header_h/4);
+      nvgClosePath(s->vg);
+      nvgFillColor(s->vg, nvgRGBA(23,134,68,s->scene.blinker_blinkingrate>=50?210:60));
+      nvgFill(s->vg);
+    }
+    if(s->scene.leftBlinker || s->scene.rightBlinker) {
+      s->scene.blinker_blinkingrate -= 3;
+      if(s->scene.blinker_blinkingrate<0) s->scene.blinker_blinkingrate = 120;
+    }
+  }
 }
 
 static void ui_draw_vision_event(UIState *s) {
@@ -532,18 +562,36 @@ static void ui_draw_vision_header(UIState *s) {
                         nvgRGBAf(0,0,0,0.45), nvgRGBAf(0,0,0,0));
 
   ui_draw_rect(s->vg, viz_rect.x, viz_rect.y, viz_rect.w, header_h, gradient);
-
+  if (s->scene.dpUiMaxSpeed) {
   ui_draw_vision_maxspeed(s);
+  }
+  if (s->scene.dpUiSpeed) {
   ui_draw_vision_speed(s);
+  }
+  if (s->scene.dpUiEvent) {
   ui_draw_vision_event(s);
+  }
 }
 
 static void ui_draw_vision_footer(UIState *s) {
+  if (s->scene.dpUiFace) {
   ui_draw_vision_face(s);
-  ui_draw_df_button(s);
-  ui_draw_ap_button(s);
-  ui_draw_bbui(s);
-  ui_draw_infobar(s);
+  }
+  if ((int)s->scene.dpDynamicFollow > 0) {
+    ui_draw_df_button(s);
+  }
+  if ((int)s->scene.dpAccelProfile > 0) {
+    ui_draw_ap_button(s);
+  }
+  if (s->scene.dpUiDev) {
+    ui_draw_bbui(s);
+  }
+  if (s->scene.dpUiDevMini) {
+    ui_draw_blindspots(s, true);
+    ui_draw_infobar(s);
+  } else {
+    ui_draw_blindspots(s, false);
+  }
 }
 
 void ui_draw_vision_alert(UIState *s, cereal::ControlsState::AlertSize va_size, int va_color,

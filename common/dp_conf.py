@@ -3,13 +3,18 @@ import os
 import json
 import time
 from math import floor
-from common.hardware import EON
-from common.hardware_android import getprop
 
 '''
-dependencies needs to use struct and loaded prior so we don't have to read the param multiple times.
+* type: Bool, Int8, UInt8, UInt16, Float32
+* conf_type: param, struct
+* dependencies needs to use struct and loaded prior so we don't have to read the param multiple times.
+* update_once: True, False (the param will only load up once.)
 '''
 confs = [
+  # thermald data
+  {'name': 'dp_thermal_started', 'default': False, 'type': 'Bool', 'conf_type': ['struct']},
+  {'name': 'dp_thermal_overheat', 'default': False, 'type': 'Bool', 'conf_type': ['struct']},
+
   {'name': 'dp_atl', 'default': False, 'type': 'Bool', 'conf_type': ['param', 'struct'], 'update_once': True},
   # full screen apps
   {'name': 'dp_app_waze', 'default':  False, 'type': 'Bool', 'conf_type': ['param', 'struct']},
@@ -90,7 +95,7 @@ confs = [
   # custom car
   {'name': 'dp_car_selected', 'default': '', 'type': 'Text', 'conf_type': ['param']},
   {'name': 'dp_car_list', 'default': '', 'type': 'Text', 'conf_type': ['param']},
-  {'name': 'dp_car_detected', 'default': '', 'type': 'Text', 'conf_type': ['param', 'struct'], 'update_once': True},
+  {'name': 'dp_car_detected', 'default': '', 'type': 'Text', 'conf_type': ['param', 'struct']},
   # toyota
   {'name': 'dp_toyota_ldw', 'default': True, 'type': 'Bool', 'depends': [{'name': 'dp_car_detected', 'vals': ['toyota']}], 'conf_type': ['param', 'struct']},
   {'name': 'dp_toyota_sng', 'default': False, 'type': 'Bool', 'depends': [{'name': 'dp_car_detected', 'vals': ['toyota']}, {'name': 'dp_atl', 'vals': [False]}], 'conf_type': ['param', 'struct']},
@@ -105,7 +110,7 @@ confs = [
   {'name': 'dp_last_modified', 'default': str(floor(time.time())), 'type': 'Text', 'conf_type': ['param']},
   {'name': 'dp_camera_offset', 'default': 6, 'type': 'Int8', 'min': -255, 'max': 255, 'conf_type': ['param', 'struct']},
 
-  {'name': 'dp_locale', 'default': getprop("persist.sys.locale").rstrip('\n') if EON else 'en-US', 'type': 'Text', 'conf_type': ['param', 'struct'], 'update_once': True},
+  {'name': 'dp_locale', 'default': 'en-US', 'type': 'Text', 'conf_type': ['param', 'struct'], 'update_once': True},
   {'name': 'dp_disable_relay', 'default': False, 'type': 'Bool', 'conf_type': ['param']},
   {'name': 'dp_charging_ctrl', 'default': False, 'type': 'Bool', 'conf_type': ['param', 'struct']},
   {'name': 'dp_charging_at', 'default': 60, 'type': 'UInt8', 'min': 0, 'max': 100, 'depends': [{'name': 'dp_charging_ctrl', 'vals': [True]}], 'conf_type': ['param', 'struct']},
@@ -117,10 +122,6 @@ confs = [
   {'name': 'dp_lqr', 'default': False, 'type': 'Bool', 'conf_type': ['param']},
   {'name': 'dp_reset_live_param_on_start', 'default': False, 'type': 'Bool', 'conf_type': ['param']},
   {'name': 'dp_timebomb_assist', 'default': False, 'type': 'Bool', 'conf_type': ['param', 'struct']},
-
-  # including thermal data
-  {'name': 'dp_thermal_started', 'default': False, 'type': 'Bool', 'conf_type': ['struct']},
-  {'name': 'dp_thermal_overheat', 'default': False, 'type': 'Bool', 'conf_type': ['struct']},
 ]
 
 def get_definition(name):

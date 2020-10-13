@@ -3,7 +3,9 @@ import subprocess
 from cereal import car
 from common.params import Params
 from common.realtime import sec_since_boot
+import os
 params = Params()
+LAST_MODIFIED = "/data/params/d/dp_last_modified"
 
 def is_online():
   try:
@@ -43,11 +45,11 @@ def common_interface_get_params_lqr(ret):
   return ret
 
 
-def last_modified(last_ts, delay):
+def get_last_modified(last_ts, delay):
   ts = sec_since_boot()
   modified = None
   if last_ts is None or ts - last_ts >= delay:
-    modified = params.get("dp_last_modified", encoding='utf8')
+    modified = os.stat(LAST_MODIFIED).st_mtime
   return ts, modified
 
 def param_get(param_name, type, default):

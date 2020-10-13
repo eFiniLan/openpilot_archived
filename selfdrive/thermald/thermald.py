@@ -43,8 +43,8 @@ LEON = False
 last_eon_fan_val = None
 
 params = Params()
-from common.dp_time import DELAY_THERMALD
-from common.dp_common import last_modified, param_get
+from common.dp_time import LAST_MODIFIED_THERMALD
+from common.dp_common import get_last_modified, param_get
 
 def get_thermal_config():
   # (tz, scale)
@@ -176,7 +176,6 @@ def thermald_thread():
   thermal_sock = messaging.pub_sock('thermal')
   health_sock = messaging.sub_sock('health', timeout=health_timeout)
   location_sock = messaging.sub_sock('gpsLocation')
-  sm = messaging.SubMaster(['dragonConf'])
 
   ignition = False
   fan_speed = 0
@@ -220,9 +219,8 @@ def thermald_thread():
   last_ts = 0.
 
   while 1:
-    last_ts, dp_last_modified = last_modified(last_ts, DELAY_THERMALD)
-
     # dp - load temp monitor conf
+    last_ts, dp_last_modified = get_last_modified(last_ts, LAST_MODIFIED_THERMALD)
     if dp_last_modified_temp_monitor != dp_last_modified:
       dp_temp_monitor = param_get("dp_temp_monitor", "bool", True)
       dp_last_modified_temp_monitor = dp_last_modified
@@ -463,7 +461,7 @@ def thermald_thread():
       if dp_last_modified_auto_shutdown != dp_last_modified:
         dp_auto_shutdown = param_get("dp_auto_shutdown", "bool", False)
         if dp_auto_shutdown:
-          dp_auto_shutdown_in = param_get("dp_auto_shutdown_in", "int", 5400) * 60
+          dp_auto_shutdown_in = param_get("dp_auto_shutdown_in", "int", 90) * 60
           # reset off_ts if dp_auto_shutdown_is has changed.
           if dp_auto_shutdown_in_last != dp_auto_shutdown_in:
             off_ts = sec_since_boot()

@@ -5,7 +5,7 @@ import threading
 from selfdrive.swaglog import cloudlog
 from selfdrive.loggerd.config import ROOT, get_available_bytes, get_available_percent
 from selfdrive.loggerd.uploader import listdir_by_creation
-from selfdrive.dragonpilot.systemd import DASHCAM_FREESPACE_LIMIT
+from selfdrive.dragonpilot.dashcam import DASHCAM_FREESPACE_LIMIT
 
 MIN_BYTES = 5 * 1024 * 1024 * 1024
 MIN_PERCENT = 10 + (DASHCAM_FREESPACE_LIMIT * 100)

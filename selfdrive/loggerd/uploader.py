@@ -251,7 +251,7 @@ def uploader_fn(exit_event):
       on_hotspot = is_on_hotspot()
       on_wifi = is_on_wifi()
 
-      sm.update(1000)
+      sm.update(100)
       if sm.updated['dragonConf']:
         on_wifi = True if sm['dragonConf'].dpUploadOnMobile else on_wifi
         on_hotspot = False if sm['dragonConf'].dpUploadOnHotspot else on_hotspot
