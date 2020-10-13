@@ -43,6 +43,8 @@ LEON = False
 last_eon_fan_val = None
 
 params = Params()
+from common.dp_time import DELAY_THERMALD
+from common.dp_common import last_modified, param_get
 
 def get_thermal_config():
   # (tz, scale)
@@ -210,11 +212,21 @@ def thermald_thread():
 
   # dp
   dp_temp_monitor = True
+  dp_last_modified_temp_monitor = None
+  dp_last_modified_auto_shutdown = None
+  dp_auto_shutdown = False
+  dp_auto_shutdown_in = 5400
+  dp_auto_shutdown_in_last = dp_auto_shutdown_in
+  last_ts = 0.
 
   while 1:
-    sm.update()
-    if sm.updated['dragonConf']:
-      dp_temp_monitor = sm['dragonConf'].dpTempMonitor
+    last_ts, dp_last_modified = last_modified(last_ts, DELAY_THERMALD)
+
+    # dp - load temp monitor conf
+    if dp_last_modified_temp_monitor != dp_last_modified:
+      dp_temp_monitor = param_get("dp_temp_monitor", "bool", True)
+      dp_last_modified_temp_monitor = dp_last_modified
+
     health = messaging.recv_sock(health_sock, wait=True)
     location = messaging.recv_sock(location_sock)
     location = location.gpsLocation if location else None
@@ -445,21 +457,30 @@ def thermald_thread():
       time.sleep(10)
       os.system('LD_LIBRARY_PATH="" svc power shutdown')
 
-    if off_ts is not None and sec_since_boot() - off_ts >= 10:
-      msg.thermal.chargingDisabled = True
-      print("charging disabled!")
-      shutdown = False
-      if health is not None:
-        print("health.health.usbPowerMode: %s" % health.health.usbPowerMode)
-        print("log.HealthData.UsbPowerMode.client: %s" % log.HealthData.UsbPowerMode.client)
-        if health.health.usbPowerMode == log.HealthData.UsbPowerMode.client:
+    # dp
+    if off_ts is not None:
+      # auto shutdown conf
+      if dp_last_modified_auto_shutdown != dp_last_modified:
+        dp_auto_shutdown = param_get("dp_auto_shutdown", "bool", False)
+        if dp_auto_shutdown:
+          dp_auto_shutdown_in = param_get("dp_auto_shutdown_in", "int", 5400) * 60
+          # reset off_ts if dp_auto_shutdown_is has changed.
+          if dp_auto_shutdown_in_last != dp_auto_shutdown_in:
+            off_ts = sec_since_boot()
+          dp_auto_shutdown_in_last = dp_auto_shutdown_in
+        dp_last_modified_auto_shutdown = dp_last_modified
+      # auto shutdown logic
+      if dp_auto_shutdown and sec_since_boot() - off_ts >= dp_auto_shutdown_in:
+        msg.thermal.chargingDisabled = True
+        shutdown = False
+        if health is not None:
+          if health.health.usbPowerMode == log.HealthData.UsbPowerMode.client or health.health.usbPowerMode is None:
+            shutdown = True
+        else:
           shutdown = True
-      else:
-        shutdown = True
-      if shutdown:
-        print("about to shutdown")
-        time.sleep(10)
-        # os.system('LD_LIBRARY_PATH="" svc power shutdown')
+        if shutdown:
+          time.sleep(10)
+          os.system('LD_LIBRARY_PATH="" svc power shutdown')
 
     msg.thermal.chargingError = current_filter.x > 0. and msg.thermal.batteryPercent < 90  # if current is positive, then battery is being discharged
     msg.thermal.started = started_ts is not None

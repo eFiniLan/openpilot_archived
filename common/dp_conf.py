@@ -6,20 +6,22 @@ from math import floor
 from common.hardware import EON
 from common.hardware_android import getprop
 
+'''
+dependencies needs to use struct and loaded prior so we don't have to read the param multiple times.
+'''
 confs = [
   {'name': 'dp_atl', 'default': False, 'type': 'Bool', 'conf_type': ['param', 'struct'], 'update_once': True},
-  # waze
+  # full screen apps
   {'name': 'dp_app_waze', 'default':  False, 'type': 'Bool', 'conf_type': ['param', 'struct']},
   {'name': 'dp_app_waze_manual', 'default': 0, 'type': 'Int8', 'min': -1, 'max': 1, 'depends': [{'name': 'dp_app_waze', 'vals': [True]}], 'conf_type': ['param', 'struct']},
-  # hr
   {'name': 'dp_app_hr', 'default':  False, 'type': 'Bool', 'conf_type': ['param', 'struct']},
   {'name': 'dp_app_hr_manual', 'default': 0, 'type': 'Int8', 'min': -1, 'max': 1, 'depends': [{'name': 'dp_app_hr', 'vals': [True]}], 'conf_type': ['param', 'struct']},
   # dashcam related
   {'name': 'dp_dashcam', 'default': 0, 'type': 'Bool', 'conf_type': ['param', 'struct']},
   {'name': 'dp_dashcam_hours_stored', 'default': 24, 'type': 'UInt8', 'min': 1, 'max': 255, 'depends': [{'name': 'dp_dashcam', 'vals': [True]}], 'conf_type': ['param', 'struct']},
-  # auto shutdown related
+  # auto shutdown
   {'name': 'dp_auto_shutdown', 'default': False, 'type': 'Bool', 'conf_type': ['param', 'struct']},
-  {'name': 'dp_auto_shutdown_in', 'default': 90, 'type': 'UInt16', 'min': 1, 'max': 65535, 'depends': [{'name': 'dp_auto_shutdown', 'vals': [True]}], 'conf_type': ['param', 'struct']},
+  {'name': 'dp_auto_shutdown_in', 'default': 90, 'type': 'UInt16', 'min': 1, 'max': 65535, 'depends': [{'name': 'dp_auto_shutdown', 'vals': [True]}], 'conf_type': ['param']},
   # service
   {'name': 'dp_logger', 'default': True, 'type': 'Bool', 'conf_type': ['param']},
   {'name': 'dp_athenad', 'default': True, 'type': 'Bool', 'depends': [{'name': 'dp_atl', 'vals': [False]}], 'conf_type': ['param', 'struct']},
@@ -46,15 +48,15 @@ confs = [
   {'name': 'dp_max_ctrl_speed', 'default': 92., 'type': 'Float32', 'conf_type': ['param', 'struct']},
   {'name': 'dp_lead_car_alert', 'default': False, 'type': 'Bool', 'conf_type': ['param', 'struct']},
   {'name': 'dp_dynamic_follow', 'default': 0, 'type': 'UInt8', 'min': 0, 'max': 4, 'depends': [{'name': 'dp_atl', 'vals': [False]}], 'conf_type': ['param', 'struct']},
-  {'name': 'dp_dynamic_follow_multiplier', 'default': 1., 'type': 'Float32', 'min': 0.85, 'max': 1.2, 'depends': [{'name': 'dp_atl', 'vals': [False]}], 'conf_type': ['param', 'struct']},
-  {'name': 'dp_dynamic_follow_min_tr', 'default': 0.9, 'type': 'Float32', 'min': 0.85, 'max': 1.6, 'depends': [{'name': 'dp_atl', 'vals': [False]}], 'conf_type': ['param', 'struct']},
+  {'name': 'dp_dynamic_follow_multiplier', 'default': 1., 'type': 'Float32', 'min': 0.85, 'max': 1.2, 'depends': [{'name': 'dp_atl', 'vals': [False]}], 'conf_type': ['param']},
+  {'name': 'dp_dynamic_follow_min_tr', 'default': 0.9, 'type': 'Float32', 'min': 0.85, 'max': 1.6, 'depends': [{'name': 'dp_atl', 'vals': [False]}], 'conf_type': ['param']},
   {'name': 'dp_accel_profile', 'default': 0, 'type': 'UInt8', 'min': 0, 'max': 3, 'depends': [{'name': 'dp_atl', 'vals': [False]}], 'conf_type': ['param', 'struct']},
   # safety
   {'name': 'dp_driver_monitor', 'default': True, 'type': 'Bool', 'conf_type': ['param', 'struct']},
   {'name': 'dp_steering_monitor', 'default': True, 'type': 'Bool', 'depends': [{'name': 'dp_driver_monitor', 'vals': [False]}], 'conf_type': ['param', 'struct']},
   {'name': 'dp_steering_monitor_timer', 'default': 70, 'type': 'UInt8', 'min': 70, 'max': 360, 'depends': [{'name': 'dp_driver_monitor', 'vals': [False]}, {'name': 'dp_steering_monitor', 'vals': [True]}], 'conf_type': ['param', 'struct']},
   {'name': 'dp_gear_check', 'default': True, 'type': 'Bool', 'depends': [{'name': 'dp_atl', 'vals': [False]}], 'conf_type': ['param', 'struct']},
-  {'name': 'dp_temp_monitor', 'default': True, 'type': 'Bool', 'conf_type': ['param', 'struct']},
+  {'name': 'dp_temp_monitor', 'default': True, 'type': 'Bool', 'conf_type': ['param']},
   # UIs
   {'name': 'dp_driving_ui', 'default': True, 'type': 'Bool', 'conf_type': ['param', 'struct']},
   {'name': 'dp_ui_screen_off_reversing', 'default': False, 'type': 'Bool', 'conf_type': ['param', 'struct']},
@@ -85,17 +87,17 @@ confs = [
   {'name': 'dp_app_aegis_manual', 'default': 0, 'type': 'Int8', 'min': -1, 'max': 1, 'depends': [{'name': 'dp_app_aegis', 'vals': [True]}], 'conf_type': ['param', 'struct']},
   {'name': 'dp_app_mixplorer', 'default':  False, 'type': 'Bool', 'conf_type': ['param', 'struct']},
   {'name': 'dp_app_mixplorer_manual', 'default': 0, 'type': 'Int8', 'min': -1, 'max': 1, 'depends': [{'name': 'dp_app_mixplorer', 'vals': [True]}], 'conf_type': ['param', 'struct']},
-  # toyota
-  {'name': 'dp_toyota_ldw', 'default': True, 'type': 'Bool', 'conf_type': ['param', 'struct']},
-  {'name': 'dp_toyota_sng', 'default': False, 'type': 'Bool', 'depends': [{'name': 'dp_atl', 'vals': [False]}], 'conf_type': ['param', 'struct']},
-  {'name': 'dp_toyota_zss', 'default': False, 'type': 'Bool', 'conf_type': ['param']},
-  {'name': 'dp_toyota_lowest_cruise_override', 'default': False, 'type': 'Bool', 'depends': [{'name': 'dp_atl', 'vals': [False]}], 'conf_type': ['param', 'struct']},
-  {'name': 'dp_toyota_lowest_cruise_override_at', 'default': 44, 'type': 'Float32', 'depends': [{'name': 'dp_toyota_lowest_cruise_override', 'vals': [True]}], 'min': 0, 'max': 255., 'conf_type': ['param', 'struct']},
-  {'name': 'dp_toyota_lowest_cruise_override_speed', 'default': 32, 'type': 'Float32', 'depends': [{'name': 'dp_toyota_lowest_cruise_override_speed', 'vals': [True]}], 'min': 0, 'max': 255., 'conf_type': ['param', 'struct']},
   # custom car
   {'name': 'dp_car_selected', 'default': '', 'type': 'Text', 'conf_type': ['param']},
   {'name': 'dp_car_list', 'default': '', 'type': 'Text', 'conf_type': ['param']},
-  {'name': 'dp_car_detected', 'default': '', 'type': 'Text', 'conf_type': ['param']},
+  {'name': 'dp_car_detected', 'default': '', 'type': 'Text', 'conf_type': ['param', 'struct'], 'update_once': True},
+  # toyota
+  {'name': 'dp_toyota_ldw', 'default': True, 'type': 'Bool', 'depends': [{'name': 'dp_car_detected', 'vals': ['toyota']}], 'conf_type': ['param', 'struct']},
+  {'name': 'dp_toyota_sng', 'default': False, 'type': 'Bool', 'depends': [{'name': 'dp_car_detected', 'vals': ['toyota']}, {'name': 'dp_atl', 'vals': [False]}], 'conf_type': ['param', 'struct']},
+  {'name': 'dp_toyota_zss', 'default': False, 'type': 'Bool', 'depends': [{'name': 'dp_car_detected', 'vals': ['toyota']}], 'conf_type': ['param']},
+  {'name': 'dp_toyota_lowest_cruise_override', 'default': False, 'type': 'Bool', 'depends': [{'name': 'dp_car_detected', 'vals': ['toyota']}, {'name': 'dp_atl', 'vals': [False]}], 'conf_type': ['param', 'struct']},
+  {'name': 'dp_toyota_lowest_cruise_override_at', 'default': 44, 'type': 'Float32', 'depends': [{'name': 'dp_car_detected', 'vals': ['toyota']}, {'name': 'dp_toyota_lowest_cruise_override', 'vals': [True]}], 'min': 0, 'max': 255., 'conf_type': ['param', 'struct']},
+  {'name': 'dp_toyota_lowest_cruise_override_speed', 'default': 32, 'type': 'Float32', 'depends': [{'name': 'dp_car_detected', 'vals': ['toyota']}, {'name': 'dp_toyota_lowest_cruise_override_speed', 'vals': [True]}], 'min': 0, 'max': 255., 'conf_type': ['param', 'struct']},
   #misc
   {'name': 'dp_ip_addr', 'default': '', 'type': 'Text', 'conf_type': ['struct']},
   {'name': 'dp_full_speed_fan', 'default': False, 'type': 'Bool', 'conf_type': ['param']},
@@ -230,8 +232,6 @@ def init_params_vals(params, put_nonblocking):
       if conf['name'] == 'dp_car_list':
         params.put(conf['name'], get_support_car_list())
       elif params.get(conf['name']) is None:
-        print('name: %s' % conf['name'])
-        print('to_param_val: %s' % to_param_val(conf['name'], conf['default']))
         params.put(conf['name'], to_param_val(conf['name'], conf['default']))
 
 '''

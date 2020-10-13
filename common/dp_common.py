@@ -2,6 +2,7 @@
 import subprocess
 from cereal import car
 from common.params import Params
+from common.realtime import sec_since_boot
 params = Params()
 
 def is_online():
@@ -40,3 +41,24 @@ def common_interface_get_params_lqr(ret):
     ret.lateralTuning.lqr.l = [0.3233671, 0.3185757]
     ret.lateralTuning.lqr.dcGain = 0.002237852961363602
   return ret
+
+
+def last_modified(last_ts, delay):
+  ts = sec_since_boot()
+  modified = None
+  if last_ts is None or ts - last_ts >= delay:
+    modified = params.get("dp_last_modified", encoding='utf8')
+  return ts, modified
+
+def param_get(param_name, type, default):
+  try:
+    val = params.get(param_name, encoding='utf8').rstrip('\x00')
+    if type == 'bool':
+      val = val == '1'
+    elif type == 'int':
+      val = int(val)
+    elif type == 'float':
+      val = float(val)
+  except (TypeError, ValueError):
+    val = default
+  return val

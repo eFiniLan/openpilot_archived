@@ -5,7 +5,8 @@ from selfdrive.controls.lib.drive_helpers import MPC_COST_LONG
 from common.numpy_fast import interp, clip
 from selfdrive.config import Conversions as CV
 from common.params import Params
-import cereal.messaging as messaging
+from common.dp_time import DELAY_DYNAMIC_FOLLOW
+from common.dp_common import last_modified, param_get
 
 from selfdrive.controls.lib.dynamic_follow.auto_df import predict
 from selfdrive.controls.lib.dynamic_follow.support import LeadData, CarData, dfData, dfProfiles
@@ -42,16 +43,14 @@ class DynamicFollow:
     self.sng_TR = 1.8  # reacceleration stop and go TR
     self.sng_speed = 18.0 * CV.MPH_TO_MS
 
-    self._setup_changing_variables()
-
     # dp params
     self.last_ts = 0.
+    self.dp_last_modified = None
+    self.modified = None
     self.dp_dynamic_follow = PROFILE_OFF
     self.params = Params()
-    self.sm = messaging.SubMaster(['dragonConf'])
-    self.sm['dragonConf'].dpDynamicFollow = PROFILE_OFF
-    self.sm['dragonConf'].dpDynamicFollowMultiplier = 1.
-    self.sm['dragonConf'].dpDynamicFollowMinTR = 0.9
+
+    self._setup_changing_variables()
 
   def _setup_changing_variables(self):
     self.TR = self.default_TR
@@ -325,17 +324,12 @@ class DynamicFollow:
     self.car_data.cruise_enabled = CS.cruiseState.enabled
 
   def _get_live_params(self):
-    self.sm.update()
-    if self.sm.updated['dragonConf']:
-      # dp
-      self.dp_dynamic_follow = self.sm['dragonConf'].dpDynamicFollow
-      if self.dp_dynamic_follow > 4 or self.dp_dynamic_follow < 0:
-        self.dp_dynamic_follow = PROFILE_OFF
-
-      self.global_df_mod = self.sm['dragonConf'].dpDynamicFollowMultiplier
+    self.last_ts, self.modified = last_modified(self.last_ts, DELAY_DYNAMIC_FOLLOW)
+    if self.dp_last_modified != self.modified:
+      self.dp_dynamic_follow = param_get("dp_dynamic_follow", "int", PROFILE_OFF)
+      self.global_df_mod = param_get("dp_dynamic_follow_multiplier", "float", 1.)
       if self.global_df_mod != 1.:
-        self.global_df_mod = clip(self.global_df_mod, 0.85, 1.2)
-
-      self.min_TR = self.sm['dragonConf'].dpDynamicFollowMinTR
-      if self.min_TR != 0.9:
-        self.min_TR = clip(self.min_TR, 0.85, 1.6)
+        self.global_df_mod = clip(self.global_df_mod, .85, 1.2)
+      self.global_df_mod = param_get("dp_dynamic_follow_min_tr", "float", .9)
+      if self.global_df_mod != .9:
+        self.global_df_mod = clip(self.global_df_mod, .85, 1.6)
