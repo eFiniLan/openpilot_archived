@@ -58,7 +58,6 @@ class CarController():
                                          apply_steer)
     self.last_blinker_on = blinker_on
 
-
     self.apply_steer_last = apply_steer
 
     can_sends = []
