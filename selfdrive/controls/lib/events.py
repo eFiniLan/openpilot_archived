@@ -185,7 +185,7 @@ def below_steer_speed_alert(CP: car.CarParams, sm: messaging.SubMaster, metric: 
   unit = "km/h" if metric else "mph"
   return Alert(
     _("TAKE CONTROL"),
-    _("Steer Unavailable Below %d %s") % (speed, unit),
+    _("Steer Unavailable Below %(speed)d %(unit)s") % ({"speed": speed, "unit": unit}),
     AlertStatus.userPrompt, AlertSize.mid,
     Priority.MID, VisualAlert.steerRequired, AudibleAlert.none, 0., 0.4, .3)
 
@@ -194,7 +194,7 @@ def calibration_incomplete_alert(CP: car.CarParams, sm: messaging.SubMaster, met
   unit = "km/h" if metric else "mph"
   return Alert(
     _("Calibration in Progress: %d%%") % sm['liveCalibration'].calPerc,
-    _("Drive Above %d %s") % (speed, unit),
+    _("Drive Above %(speed)d %(unit)s") % ({"speed": speed, "unit": unit}),
     AlertStatus.normal, AlertSize.mid,
     Priority.LOWEST, VisualAlert.none, AudibleAlert.none, 0., 0., .2)
 
