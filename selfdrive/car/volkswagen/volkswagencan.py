@@ -6,34 +6,34 @@
 
 def create_mqb_steering_control(packer, bus, apply_steer, idx, lkas_enabled):
   values = {
-    "SET_ME_0X3": 0x3,
-    "Assist_Torque": abs(apply_steer),
-    "Assist_Requested": lkas_enabled,
-    "Assist_VZ": 1 if apply_steer < 0 else 0,
-    "HCA_Available": 1,
-    "HCA_Standby": not lkas_enabled,
-    "HCA_Active": lkas_enabled,
-    "SET_ME_0XFE": 0xFE,
-    "SET_ME_0X07": 0x07,
+    "HCA_System_Status": 0x3,
+    "LM_Offset": abs(apply_steer),
+    "LM_Offset_Valid": lkas_enabled,
+    "LM_Offsign": 1 if apply_steer < 0 else 0,
+    "HCA_Control_Status": 0x5 if lkas_enabled else 0x3,
   }
   return packer.make_can_msg("HCA_01", bus, values, idx)
 
-def create_mqb_hud_control(packer, bus, hca_enabled, steering_pressed, hud_alert, leftLaneVisible, rightLaneVisible):
-
+def create_mqb_hud_control(packer, bus, hca_enabled, steering_pressed, hud_alert, left_lane_visible, right_lane_visible,
+                           ldw_lane_warning_left, ldw_lane_warning_right, ldw_side_dlc_tlc, ldw_dlc, ldw_tlc):
   if hca_enabled:
-    leftlanehud = 3 if leftLaneVisible else 1
-    rightlanehud = 3 if rightLaneVisible else 1
+    left_lane_hud = 3 if left_lane_visible else 1
+    right_lane_hud = 3 if right_lane_visible else 1
   else:
-    leftlanehud = 2 if leftLaneVisible else 1
-    rightlanehud = 2 if rightLaneVisible else 1
+    left_lane_hud = 2 if left_lane_visible else 1
+    right_lane_hud = 2 if right_lane_visible else 1
 
   values = {
-    "LDW_Unknown": 2,  # FIXME: possible speed or attention relationship
-    "Kombi_Lamp_Orange": 1 if hca_enabled and steering_pressed else 0,
-    "Kombi_Lamp_Green": 1 if hca_enabled and not steering_pressed else 0,
-    "Left_Lane_Status": leftlanehud,
-    "Right_Lane_Status": rightlanehud,
-    "Alert_Message": hud_alert,
+    "LDW_Status_LED_gelb": 1 if hca_enabled and steering_pressed else 0,
+    "LDW_Status_LED_gruen": 1 if hca_enabled and not steering_pressed else 0,
+    "LDW_SW_Info_links": left_lane_hud,
+    "LDW_SW_Info_rechts": right_lane_hud,
+    "LDW_Texte": hud_alert,
+    "LDW_SW_Warnung_links": ldw_lane_warning_left,
+    "LDW_SW_Warnung_rechts": ldw_lane_warning_right,
+    "LDW_Seite_DLCTLC": ldw_side_dlc_tlc,
+    "LDW_DLC": ldw_dlc,
+    "LDW_TLC": ldw_tlc
   }
   return packer.make_can_msg("LDW_02", bus, values)
 
@@ -73,17 +73,18 @@ def create_pq_steering_control(packer, bus, apply_steer, idx, lkas_enabled):
   values["HCA_Checksumme"] = dat[1] ^ dat[2] ^ dat[3] ^ dat[4]
   return packer.make_can_msg("HCA_1", bus, values)
 
-def create_pq_hud_control(packer, bus, hca_enabled, steering_pressed, hud_alert, leftLaneVisible, rightLaneVisible):
+def create_pq_hud_control(packer, bus, hca_enabled, steering_pressed, hud_alert, left_lane_visible, right_lane_visible,
+                          ldw_lane_warning_left, ldw_lane_warning_right, ldw_side_dlc_tlc, ldw_dlc, ldw_tlc):
   if hca_enabled:
-    leftlanehud = 3 if leftLaneVisible else 1
-    rightlanehud = 3 if rightLaneVisible else 1
+    left_lane_hud = 3 if left_lane_visible else 1
+    right_lane_hud = 3 if right_lane_visible else 1
   else:
-    leftlanehud = 2 if leftLaneVisible else 1
-    rightlanehud = 2 if rightLaneVisible else 1
+    left_lane_hud = 2 if left_lane_visible else 1
+    right_lane_hud = 2 if right_lane_visible else 1
 
   values = {
-    "Right_Lane_Status": rightlanehud,
-    "Left_Lane_Status": leftlanehud,
+    "Right_Lane_Status": right_lane_hud,
+    "Left_Lane_Status": left_lane_hud,
     "SET_ME_X1": 1,
     "Kombi_Lamp_Orange": 1 if hca_enabled and steering_pressed else 0,
     "Kombi_Lamp_Green": 1 if hca_enabled and not steering_pressed else 0,

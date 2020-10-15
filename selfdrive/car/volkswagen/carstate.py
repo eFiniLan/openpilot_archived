@@ -46,8 +46,8 @@ class CarState(CarStateBase):
     # Update steering angle, rate, yaw rate, and driver input torque. VW send
     # the sign/direction in a separate signal so they must be recombined.
     ret.steeringAngle = pt_cp.vl["LWI_01"]['LWI_Lenkradwinkel'] * (1, -1)[int(pt_cp.vl["LWI_01"]['LWI_VZ_Lenkradwinkel'])]
-    ret.steeringRate = pt_cp.vl["LWI_01"]['LWI_Lenkradw_Geschw'] * (1, -1)[int(pt_cp.vl["LWI_01"]['LWI_VZ_Lenkradwinkel'])]
-    ret.steeringTorque = pt_cp.vl["EPS_01"]['Driver_Strain'] * (1, -1)[int(pt_cp.vl["EPS_01"]['Driver_Strain_VZ'])]
+    ret.steeringRate = pt_cp.vl["LWI_01"]['LWI_Lenkradw_Geschw'] * (1, -1)[int(pt_cp.vl["LWI_01"]['LWI_VZ_Lenkradw_Geschw'])]
+    ret.steeringTorque = pt_cp.vl["LH_EPS_03"]['EPS_Lenkmoment'] * (1, -1)[int(pt_cp.vl["LH_EPS_03"]['EPS_VZ_Lenkmoment'])] * 100.0
     ret.steeringPressed = abs(ret.steeringTorque) > CarControllerParams.STEER_DRIVER_ALLOWANCE
     ret.yawRate = pt_cp.vl["ESP_02"]['ESP_Gierrate'] * (1, -1)[int(pt_cp.vl["ESP_02"]['ESP_VZ_Gierrate'])] * CV.DEG_TO_RAD
 
@@ -70,16 +70,9 @@ class CarState(CarStateBase):
     elif trans_type == TRANS.manual:
       ret.clutchPressed = not pt_cp.vl["Motor_14"]['MO_Kuppl_schalter']
       reverse_light = bool(pt_cp.vl["Gateway_72"]['BCM1_Rueckfahrlicht_Schalter'])
-      # TODO: verify this synthesis has the desired behavior.
-      # In particular, should we neutral disengage during normal gear changes?
-      # Also, what happens if we're rolling backwards with the clutch pressed
-      # in a gear other than reverse?
+      # TODO: consider gating an OP minimum engage speed on whether the clutch is pressed, to prevent stalling
       if reverse_light:
         ret.gearShifter = GEAR.reverse
-      elif ret.standstill and self.parkingBrakeSet:
-        ret.gearShifter = GEAR.park
-      elif ret.clutchPressed:
-        ret.gearShifter = GEAR.neutral
       else:
         ret.gearShifter = GEAR.drive
 
@@ -98,6 +91,30 @@ class CarState(CarStateBase):
     # We use the speed preference for OP.
     self.displayMetricUnits = not pt_cp.vl["Einheiten_01"]["KBI_MFA_v_Einheit_02"]
 
+    # Stock FCW is considered active if a warning is displayed to the driver
+    # or the release bit for brake-jerk warning is set. Stock AEB considered
+    # active if the partial braking or target braking release bits are set.
+    # Ref: VW SSP 890253 "Volkswagen Driver Assistance Systems V2", "Front
+    # Assist with Braking: Golf Family" (applies to all MQB)
+    ret.stockFcw = any([bool(acc_cp.vl["ACC_10"]["AWV2_Priowarnung"]),
+                        bool(acc_cp.vl["ACC_10"]["AWV2_Freigabe"])])
+    ret.stockAeb = any([bool(acc_cp.vl["ACC_10"]["ANB_Teilbremsung_Freigabe"]),
+                        bool(acc_cp.vl["ACC_10"]["ANB_Zielbremsung_Freigabe"])])
+
+    # Consume blind-spot radar info/warning LED states, if available
+    ret.leftBlindspot = any([bool(acc_cp.vl["SWA_01"]["SWA_Infostufe_SWA_li"]),
+                             bool(acc_cp.vl["SWA_01"]["SWA_Warnung_SWA_li"])])
+    ret.rightBlindspot = any([bool(acc_cp.vl["SWA_01"]["SWA_Infostufe_SWA_re"]),
+                              bool(acc_cp.vl["SWA_01"]["SWA_Warnung_SWA_re"])])
+
+    # Consume SWA (Lane Change Assist) relevant info from factory LDW message
+    # to pass along to the blind spot radar controller
+    self.ldw_lane_warning_left = bool(cam_cp.vl["LDW_02"]["LDW_SW_Warnung_links"])
+    self.ldw_lane_warning_right = bool(cam_cp.vl["LDW_02"]["LDW_SW_Warnung_rechts"])
+    self.ldw_side_dlc_tlc = bool(cam_cp.vl["LDW_02"]["LDW_Seite_DLCTLC"])
+    self.ldw_dlc = cam_cp.vl["LDW_02"]["LDW_DLC"]
+    self.ldw_tlc = cam_cp.vl["LDW_02"]["LDW_TLC"]
+
     # Update ACC radar status.
     accStatus = pt_cp.vl["TSK_06"]['TSK_Status']
     if accStatus == 2:
@@ -115,7 +132,7 @@ class CarState(CarStateBase):
 
     # Update ACC setpoint. When the setpoint is zero or there's an error, the
     # radar sends a set-speed of ~90.69 m/s / 203mph.
-    ret.cruiseState.speed = acc_cp.vl["ACC_02"]['SetSpeed']
+    ret.cruiseState.speed = acc_cp.vl["ACC_02"]["ACC_Wunschgeschw"] * CV.KPH_TO_MS
     if ret.cruiseState.speed > 90:
       ret.cruiseState.speed = 0
 
@@ -143,7 +160,7 @@ class CarState(CarStateBase):
 
     # Check to make sure the electric power steering rack is configured to
     # accept and respond to HCA_01 messages and has not encountered a fault.
-    self.steeringFault = not pt_cp.vl["EPS_01"]["HCA_Ready"]
+    self.steeringFault = not pt_cp.vl["LH_EPS_03"]["EPS_HCA_Status"]
 
     return ret
 
@@ -277,9 +294,9 @@ class CarState(CarStateBase):
       ("ESP_Status_Bremsdruck", "ESP_05", 0),       # Brakes applied
       ("ESP_Bremsdruck", "ESP_05", 0),              # Brake pressure applied
       ("MO_Fahrpedalrohwert_01", "Motor_20", 0),    # Accelerator pedal value
-      ("Driver_Strain", "EPS_01", 0),               # Absolute driver torque input
-      ("Driver_Strain_VZ", "EPS_01", 0),            # Driver torque input sign
-      ("HCA_Ready", "EPS_01", 0),                   # Steering rack HCA support configured
+      ("EPS_Lenkmoment", "LH_EPS_03", 0),           # Absolute driver torque input
+      ("EPS_VZ_Lenkmoment", "LH_EPS_03", 0),        # Driver torque input sign
+      ("EPS_HCA_Status", "LH_EPS_03", 0),           # Steering rack ready to process HCA commands
       ("ESP_Tastung_passiv", "ESP_21", 0),          # Stability control disabled
       ("KBI_MFA_v_Einheit_02", "Einheiten_01", 0),  # MPH vs KMH speed display
       ("KBI_Handbremse", "Kombi_01", 0),            # Manual handbrake applied
@@ -301,7 +318,7 @@ class CarState(CarStateBase):
     checks = [
       # sig_address, frequency
       ("LWI_01", 100),            # From J500 Steering Assist with integrated sensors
-      ("EPS_01", 100),            # From J500 Steering Assist with integrated sensors
+      ("LH_EPS_03", 100),         # From J500 Steering Assist with integrated sensors
       ("ESP_19", 100),            # From J104 ABS/ESP controller
       ("ESP_05", 50),             # From J104 ABS/ESP controller
       ("ESP_21", 50),             # From J104 ABS/ESP controller
@@ -326,9 +343,21 @@ class CarState(CarStateBase):
       checks += [("Motor_14", 10)]  # From J623 Engine control module
 
     if CP.networkLocation == NWL.fwdCamera:
-      # The ACC radar is here on CANBUS.pt
-      signals += [("SetSpeed", "ACC_02", 0)]  # ACC set speed
-      checks += [("ACC_02", 17)]  # From J428 ACC radar control module
+      # Extended CAN devices other than the camera are here on CANBUS.pt
+      # FIXME: gate SWA_01 checks on module being detected, and reduce duplicate network location code
+      signals += [("AWV2_Priowarnung", "ACC_10", 0),      # FCW related
+                  ("AWV2_Freigabe", "ACC_10", 0),         # FCW related
+                  ("ANB_Teilbremsung_Freigabe", "ACC_10", 0),  # AEB related
+                  ("ANB_Zielbremsung_Freigabe", "ACC_10", 0),  # AEB related
+                  ("SWA_Infostufe_SWA_li", "SWA_01", 0),  # Blindspot object info, left
+                  ("SWA_Warnung_SWA_li", "SWA_01", 0),    # Blindspot object warning, left
+                  ("SWA_Infostufe_SWA_re", "SWA_01", 0),  # Blindspot object info, right
+                  ("SWA_Warnung_SWA_re", "SWA_01", 0),    # Blindspot object warning, right
+                  ("ACC_Wunschgeschw", "ACC_02", 0)]      # ACC set speed
+      checks += [("ACC_10", 50),  # From J428 ACC radar control module
+                 # FIXME: SWA_01 should be checked when we have better detection of installed hardware
+                 #("SWA_01", 20),  # From J1086 Lane Change Assist module
+                 ("ACC_02", 17)]  # From J428 ACC radar control module
 
     return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, CANBUS.pt)
 
@@ -411,14 +440,39 @@ class CarState(CarStateBase):
 
   @staticmethod
   def get_mqb_cam_can_parser(CP):
-    # TODO: Need to monitor LKAS camera, if present, for TLC/DLC/warning signals for passthru to SWA
-    signals = []
-    checks = []
+
+    # FIXME: gate LDW_02 checks on module being detected
+    signals = [
+      # sig_name, sig_address, default
+      ("LDW_SW_Warnung_links", "LDW_02", 0),    # Blind spot in warning mode on left side due to lane departure
+      ("LDW_SW_Warnung_rechts", "LDW_02", 0),   # Blind spot in warning mode on right side due to lane departure
+      ("LDW_Seite_DLCTLC", "LDW_02", 0),        # Direction of most likely lane departure (left or right)
+      ("LDW_DLC", "LDW_02", 0),                 # Lane departure, distance to line crossing
+      ("LDW_TLC", "LDW_02", 0),                 # Lane departure, time to line crossing
+    ]
+
+    checks = [
+      # sig_address, frequency
+      # FIXME: LDW_02 should be checked when we have better detection of installed hardware
+      #("LDW_02", 10),  # From R242 Driver assistance camera
+    ]
 
     if CP.networkLocation == NWL.gateway:
-      # The ACC radar is here on CANBUS.cam
-      signals += [("SetSpeed", "ACC_02", 0)]  # ACC set speed
-      checks += [("ACC_02", 17)]  # From J428 ACC radar control module
+      # All Extended CAN devices are here on CANBUS.cam
+      # FIXME: gate SWA_01 checks on module being detected, and reduce duplicate network location code
+      signals += [("AWV2_Priowarnung", "ACC_10", 0),      # FCW related
+                  ("AWV2_Freigabe", "ACC_10", 0),         # FCW related
+                  ("ANB_Teilbremsung_Freigabe", "ACC_10", 0),  # AEB related
+                  ("ANB_Zielbremsung_Freigabe", "ACC_10", 0),  # AEB related
+                  ("SWA_Infostufe_SWA_li", "SWA_01", 0),  # Blindspot object info, left
+                  ("SWA_Warnung_SWA_li", "SWA_01", 0),    # Blindspot object warning, left
+                  ("SWA_Infostufe_SWA_re", "SWA_01", 0),  # Blindspot object info, right
+                  ("SWA_Warnung_SWA_re", "SWA_01", 0),    # Blindspot object warning, right
+                  ("ACC_Wunschgeschw", "ACC_02", 0)]              # ACC set speed
+      checks += [("ACC_10", 50),  # From J428 ACC radar control module
+                 # FIXME: SWA_01 should be checked when we have better detection of installed hardware
+                 #("SWA_01", 20),  # From J1086 Lane Change Assist module
+                 ("ACC_02", 17)]  # From J428 ACC radar control module
 
     return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, CANBUS.cam)
 
