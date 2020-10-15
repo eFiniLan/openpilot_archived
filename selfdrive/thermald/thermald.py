@@ -464,7 +464,7 @@ def thermald_thread():
       msg.thermal.chargingDisabled = True
       shutdown = False
       if health is not None:
-        if health.health.usbPowerMode == log.HealthData.UsbPowerMode.client or health.health.usbPowerMode is None:
+        if health.health.usbPowerMode in [log.HealthData.UsbPowerMode.client, log.HealthData.UsbPowerMode.none]:
           shutdown = True
       else:
         shutdown = True
