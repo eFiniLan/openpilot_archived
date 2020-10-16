@@ -238,10 +238,11 @@ def set_message(msg, conf):
     params.put(conf['name'], str(val))
   struct_val = to_struct_val(conf['name'], val)
   orig_val = struct_val
-  if conf.get('min') is not None:
-    struct_val = max(struct_val, conf.get('min'))
-  if conf.get('max') is not None:
-    struct_val = min(struct_val, conf.get('max'))
+  if struct_val is not None:
+    if conf.get('min') is not None:
+      struct_val = max(struct_val, conf.get('min'))
+    if conf.get('max') is not None:
+      struct_val = min(struct_val, conf.get('max'))
   if orig_val != struct_val:
     params.put(conf['name'], str(struct_val))
   setattr(msg.dragonConf, get_struct_name(conf['name']), struct_val)

@@ -24,6 +24,7 @@ class App():
   TYPE_SERVICE = 1
   TYPE_FULLSCREEN = 2
   TYPE_UTIL = 3
+  TYPE_ANDROID_AUTO = 4
 
   # manual switch stats
   MANUAL_OFF = -1
@@ -72,6 +73,7 @@ class App():
     self.manual_ctrl_status = self.MANUAL_IDLE
     self.manually_ctrled = False
     self.init = False
+    self.check_hotspot_before_launch = True if self.app_type == App.TYPE_ANDROID_AUTO else False
 
   def get_remote_version(self):
     apk = self.app + ".apk"
@@ -204,6 +206,12 @@ class App():
 
         if self.app_type == self.TYPE_SERVICE:
           self.appops_set(self.app, "android:mock_location", "allow")
+        if self.check_hotspot_before_launch:
+          retry = 0
+          while not self.is_on_hotspot() or retry < 3:
+            print("retry")
+            time.sleep(5)
+            retry += 1
         self.system(self.start_cmd)
     self.is_running = True
 
@@ -231,6 +239,14 @@ class App():
                      cmd=e.cmd,
                      output=e.output[-1024:],
                      returncode=e.returncode)
+
+  def is_on_hotspot(self):
+    try:
+      result = subprocess.check_output(["ifconfig", "wlan0"], stderr=subprocess.STDOUT, encoding='utf8')
+      result = re.findall(r"inet addr:((\d+\.){3}\d+)", result)[0][0]
+      return result.startswith('192.168.')  # android
+    except Exception:
+      return False
 
 def init_apps(apps):
   apps.append(App(
@@ -325,11 +341,11 @@ def init_apps(apps):
   # pm disable gb.xxy.hr && pm enable gb.xxy.hr && am broadcast -a "gb.xxy.hr.WIFI_START"
   apps.append(App(
     "gb.xxy.hr",
-    "am broadcast -a gb.xxy.hr.WIFI_START",
+    "am start -n gb.xxy.hr/.MainActivity && pm disable gb.xxy.hr && pm enable gb.xxy.hr && am broadcast -a gb.xxy.hr.WIFI_START",
     "dp_app_hr",
     None,
     "dp_app_hr_manual",
-    App.TYPE_FULLSCREEN,
+    App.TYPE_ANDROID_AUTO,
     [
       "android.permission.ACCESS_FINE_LOCATION",
       "android.permission.ACCESS_COARSE_LOCATION",
@@ -378,7 +394,7 @@ def main():
           app.kill(True)
 
         if app.is_enabled:
-          if not has_fullscreen_apps and app.app_type == App.TYPE_FULLSCREEN:
+          if not has_fullscreen_apps and app.app_type in [App.TYPE_FULLSCREEN, App.TYPE_ANDROID_AUTO]:
             has_fullscreen_apps = True
 
           # process manual ctrl apps
@@ -418,7 +434,7 @@ def main():
         for app in enabled_apps:
           if not app.manually_ctrled:
             if has_fullscreen_apps:
-              if app.app_type == App.TYPE_FULLSCREEN:
+              if app.app_type in [App.TYPE_FULLSCREEN, App.TYPE_ANDROID_AUTO]:
                 app.run()
               elif app.app_type in [App.TYPE_GPS, App.TYPE_UTIL]:
                 app.kill()

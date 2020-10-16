@@ -137,7 +137,7 @@ typedef struct UIScene {
 
   // dp
   bool dpDashcam;
-  bool dpAppWaze;
+  bool dpFullScreenApp;
   bool dpDrivingUi;
   bool dpUiScreenOffReversing;
   bool dpUiScreenOffDriving;

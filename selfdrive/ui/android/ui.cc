@@ -246,7 +246,7 @@ int main(int argc, char* argv[]) {
   if (s->scene.dpUiScreenOffDriving && !s->awake) {
     set_awake(s, true);
   }
-
+  bool show_layer = true;
   while (!do_exit) {
     if (!s->started || !s->vision_connected) {
       // Delay a while to avoid 9% cpu usage while car is not started and user is keeping touching on the screen.
@@ -255,17 +255,18 @@ int main(int argc, char* argv[]) {
     double u1 = millis_since_boot();
 
     ui_update(s);
-    auto alert_sound = s->scene.controls_state.getAlertSound();
-    if (s->scene.alert_type.compare(s->scene.controls_state.getAlertType()) != 0) {
-      if (alert_sound == AudibleAlert::NONE) {
-      } else {
-        if (s->scene.dpUiScreenOffDriving && !s->awake) {
-          set_awake(s, true);
-        }
+    // hide layer when waze is running
+    if (s->scene.dpFullScreenApp) {
+      if (!show_layer && !s->started && s->status == STATUS_OFFROAD) {
+        framebuffer_swap_layer(s->fb, 0);
+        show_layer = true;
+      } else if (show_layer && s->started) {
+        framebuffer_swap_layer(s->fb, 0x00001000);
+        show_layer = false;
       }
     }
 
-    if (s->started && s->scene.dpAppWaze) {
+    if (s->started && s->scene.dpFullScreenApp) {
       // always collapsed sidebar when vision is connect and in waze mode
       s->scene.uilayout_sidebarcollapsed = true;
     } else {
@@ -287,7 +288,17 @@ int main(int argc, char* argv[]) {
 
     // manage wakefulness
     if (s->started || s->ignition) {
-      set_awake(s, true);
+      if (s->scene.dpUiScreenOffDriving) {
+        // turn on screen when alert is here.
+        if (s->awake_timeout == 0 && (s->status == STATUS_DISENGAGED || s->status == STATUS_ALERT || s->status == STATUS_WARNING)) {
+          set_awake(s, true);
+        }
+        // do nothing
+      } else if (s->scene.isReversing && s->scene.dpUiScreenOffReversing) {
+        set_awake(s, false);
+      } else {
+        set_awake(s, true);
+      }
     }
 
     if (s->awake_timeout > 0) {
@@ -318,6 +329,10 @@ int main(int argc, char* argv[]) {
     }
     update_offroad_layout_state(s, pm);
 
+//    // skip refresh when running waze
+//    if (s->scene.dpFullScreenApp && s->started) {
+//      continue;
+//    }
     ui_draw(s);
     double u2 = millis_since_boot();
     if (!s->scene.frontview && (u2-u1 > 66)) {

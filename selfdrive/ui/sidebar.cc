@@ -173,17 +173,18 @@ static void ui_draw_sidebar_panda_metric(UIState *s) {
   const int panda_y_offset = 32 + 148;
 
   int panda_severity = 0;
-  std::string panda_message = "VEHICLE\nONLINE";
+  std::string car = s->scene.dpLocale == "zh-TW"? "車輛" : s->scene.dpLocale == "zh-CN"? "车辆" : "VEHICLE";
+  std::string panda_message = car + (s->scene.dpLocale == "zh-TW"? "\n已連線" : s->scene.dpLocale == "zh-CN"? "\n在线" : "\nONLINE");
   if (s->scene.hwType == cereal::HealthData::HwType::UNKNOWN) {
     panda_severity = 2;
-    panda_message = "VEHICLE\nOFFLINE";
+    panda_message = car + (s->scene.dpLocale == "zh-TW"? "\n已離線" : s->scene.dpLocale == "zh-CN"? "\n离线" : "\nOFFLINE");
   } else if (s->started) {
     if (s->scene.satelliteCount < 6) {
       panda_severity = 1;
-      panda_message = "VEHICLE\nGPS: " + std::to_string(s->scene.satelliteCount);
+      panda_message = car + "\nGPS: " + std::to_string(s->scene.satelliteCount);
     } else {
       panda_severity = 0;
-      panda_message = "VEHICLE\nGPS: " + std::to_string(s->scene.satelliteCount);
+      panda_message = car + "\nGPS: " + std::to_string(s->scene.satelliteCount);
     }
   }
   ui_draw_sidebar_metric(s, NULL, NULL, panda_severity, panda_y_offset, panda_message.c_str());

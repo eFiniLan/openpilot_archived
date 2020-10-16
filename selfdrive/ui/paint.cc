@@ -556,12 +556,13 @@ static void ui_draw_driver_view(UIState *s) {
 
 static void ui_draw_vision_header(UIState *s) {
   const Rect &viz_rect = s->scene.viz_rect;
+  if (!s->scene.dpFullScreenApp) {
   NVGpaint gradient = nvgLinearGradient(s->vg, viz_rect.x,
                         viz_rect.y+(header_h-(header_h/2.5)),
                         viz_rect.x, viz_rect.y+header_h,
                         nvgRGBAf(0,0,0,0.45), nvgRGBAf(0,0,0,0));
-
   ui_draw_rect(s->vg, viz_rect.x, viz_rect.y, viz_rect.w, header_h, gradient);
+  }
   if (s->scene.dpUiMaxSpeed) {
   ui_draw_vision_maxspeed(s);
   }
@@ -672,7 +673,11 @@ static void ui_draw_vision(UIState *s) {
 
 static void ui_draw_background(UIState *s) {
   const Color color = bg_colors[s->status];
+  if (s->vision_connected && s->scene.dpFullScreenApp) {
+    glClearColor(0, 0, 0, 0);
+  } else {
   glClearColor(color.r/256.0, color.g/256.0, color.b/256.0, 1.0);
+  }
   glClear(GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 }
 
@@ -691,7 +696,10 @@ void ui_draw(UIState *s) {
   glViewport(0, 0, s->fb_w, s->fb_h);
   nvgBeginFrame(s->vg, s->fb_w, s->fb_h, 1.0f);
   ui_draw_sidebar(s);
-  if (s->started && s->active_app == cereal::UiLayoutState::App::NONE &&
+  if (s->vision_connected && s->scene.dpFullScreenApp) {
+    ui_draw_vision(s);
+  }
+  else if (s->started && s->active_app == cereal::UiLayoutState::App::NONE &&
       s->status != STATUS_OFFROAD && s->vision_connected) {
     ui_draw_vision(s);
   }

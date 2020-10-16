@@ -122,7 +122,7 @@ void ui_draw_infobar(UIState *s) {
 
   nvgBeginPath(s->vg);
   nvgRect(s->vg, x, y, w, info_bar_h);
-  nvgFillColor(s->vg, (s->scene.brakeLights? COLOR_RED_ALPHA(200) : COLOR_BLACK_ALPHA(s->scene.dpAppWaze? 150 : 100)));
+  nvgFillColor(s->vg, (s->scene.brakeLights? COLOR_RED_ALPHA(200) : COLOR_BLACK_ALPHA(s->scene.dpFullScreenApp? 150 : 100)));
   nvgFill(s->vg);
 
   nvgFontSize(s->vg, !s->scene.uilayout_sidebarcollapsed? 35:42);

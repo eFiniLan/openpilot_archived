@@ -226,7 +226,7 @@ void update_sockets(UIState *s) {
   if (sm.updated("dragonConf")) {
     auto data = sm["dragonConf"].getDragonConf();
     scene.dpDashcam = data.getDpDashcam();
-    scene.dpAppWaze = data.getDpAppWaze();
+    scene.dpFullScreenApp = data.getDpAppWaze() || data.getDpAppHr();
     scene.dpDrivingUi = data.getDpDrivingUi();
     scene.dpUiScreenOffReversing = data.getDpUiScreenOffReversing();
     scene.dpUiScreenOffDriving = data.getDpUiScreenOffDriving();
@@ -283,7 +283,6 @@ void ui_update(UIState *s) {
 
   // Handle onroad/offroad transition
   if (!s->started && s->status != STATUS_OFFROAD) {
-    framebuffer_swap_layer(s->fb, 0);
     s->status = STATUS_OFFROAD;
     s->active_app = cereal::UiLayoutState::App::HOME;
     s->scene.uilayout_sidebarcollapsed = false;
@@ -296,18 +295,17 @@ void ui_update(UIState *s) {
     s->alert_blinked = false;
     s->alert_blinking_alpha = 1.0;
     s->scene.alert_size = cereal::ControlsState::AlertSize::NONE;
-    if (s->scene.dpAppWaze) {
-      framebuffer_swap_layer(s->fb, 0x00010000);
-    }
   }
 
   // Handle controls timeout
   if (s->started && !s->scene.frontview && ((s->sm)->frame - s->started_frame) > 5*UI_FREQ) {
-    if ((s->sm)->rcv_frame("controlsState") < s->started_frame && !s->scene.dpUiScreenOffReversing && !s->scene.dpUiScreenOffDriving) {
-      // car is started, but controlsState hasn't been seen at all
-      s->scene.alert_text1 = "openpilot Unavailable";
-      s->scene.alert_text2 = "Waiting for controls to start";
-      s->scene.alert_size = cereal::ControlsState::AlertSize::MID;
+    if ((s->sm)->rcv_frame("controlsState") < s->started_frame) {
+      if (!s->scene.dpUiScreenOffReversing && !s->scene.dpUiScreenOffDriving) {
+        // car is started, but controlsState hasn't been seen at all
+        s->scene.alert_text1 = "openpilot Unavailable";
+        s->scene.alert_text2 = "Waiting for controls to start";
+        s->scene.alert_size = cereal::ControlsState::AlertSize::MID;
+      }
     } else if (((s->sm)->frame - (s->sm)->rcv_frame("controlsState")) > 5*UI_FREQ) {
       // car is started, but controls is lagging or died
       if (s->scene.alert_text2 != "Controls Unresponsive") {
