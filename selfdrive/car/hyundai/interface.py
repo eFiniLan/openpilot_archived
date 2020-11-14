@@ -80,7 +80,7 @@ class CarInterface(CarInterfaceBase):
       # ret.lateralTuning.pid.kf = 0.00005
       ret.mass = 2060. + STD_CARGO_KG
       ret.wheelbase = 3.01
-      ret.steerRatio = 16.5
+      ret.steerRatio = 15.5
       # dp - indi value from donfyffe
       ret.lateralTuning.init('indi')
       ret.lateralTuning.indi.innerLoopGain = 3.1
