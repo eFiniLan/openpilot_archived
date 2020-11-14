@@ -89,8 +89,8 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.indi.actuatorEffectiveness = 1.4
       # ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
       # ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.16], [0.01]]
-      ret.minSteerSpeed = 32 * CV.MPH_TO_MS
-      ret.minEnableSpeed = 10 * CV.MPH_TO_MS
+      ret.minSteerSpeed = 37 * CV.MPH_TO_MS
+      ret.minEnableSpeed = 19 * CV.MPH_TO_MS
     elif candidate == CAR.GENESIS_G70: 
       ret.lateralTuning.pid.kf = 0.00005 
       ret.mass = 1640. + STD_CARGO_KG 
