@@ -136,7 +136,7 @@ class CarState(CarStateBase):
     self.steer_state = cp.vl["MDPS12"]['CF_Mdps_ToiActive']  # 0 NOT ACTIVE, 1 ACTIVE
     self.lead_distance = cp.vl["SCC11"]['ACC_ObjDist']
 
-    self.lkMode = bool(cp_cam.vl["LKAS11"]["CF_Lkas_LdwsSysState"])
+    # self.lkMode = bool(cp_cam.vl["LKAS11"]["CF_Lkas_LdwsSysState"])
     return ret
 
   @staticmethod
