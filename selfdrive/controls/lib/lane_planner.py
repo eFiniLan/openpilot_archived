@@ -4,7 +4,7 @@ from cereal import log
 from common.dp_common import get_last_modified, param_get_if_updated
 from common.dp_time import LAST_MODIFIED_LANE_PLANNER
 
-CAMERA_OFFSET = 0.06  # m from center car to camera
+CAMERA_OFFSET = 0.10  # m from center car to camera
 
 
 def compute_path_pinv(length=50):
