@@ -71,17 +71,20 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.25], [0.05]]
       ret.minSteerSpeed = 32 * CV.MPH_TO_MS
     elif candidate == CAR.HYUNDAI_GENESIS:
+      # ret.lateralTuning.pid.kf = 0.00005
       ret.mass = 2060. + STD_CARGO_KG
       ret.wheelbase = 3.01
-      ret.steerRatio = 15
+      ret.steerRatio = 16
       # dp - indi value from donfyffe
       ret.lateralTuning.init('indi')
       ret.lateralTuning.indi.innerLoopGain = 3.1
       ret.lateralTuning.indi.outerLoopGain = 2.1
       ret.lateralTuning.indi.timeConstant = 1.4
-      ret.lateralTuning.indi.actuatorEffectiveness = 1.4
-      ret.minSteerSpeed = 32 * CV.MPH_TO_MS
-      ret.minEnableSpeed = 10 * CV.MPH_TO_MS
+      ret.lateralTuning.indi.actuatorEffectiveness = 1.3
+      # ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
+      # ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.16], [0.01]]
+      ret.minSteerSpeed = 37 * CV.MPH_TO_MS
+      ret.minEnableSpeed = 0 * CV.MPH_TO_MS
     elif candidate == CAR.KONA:
       ret.lateralTuning.pid.kf = 0.00005
       ret.mass = 1275. + STD_CARGO_KG

@@ -9,7 +9,7 @@ from common.params import Params
 class SteerLimitParams:
   def __init__(self, CP):
     if Params().get('dp_hkg_smart_mdps') == b'1' or CP.carFingerprint in [CAR.SONATA, CAR.PALISADE, CAR.SANTA_FE, CAR.VELOSTER, CAR.HYUNDAI_GENESIS, CAR.GENESIS_G70]:
-      self.STEER_MAX = 384
+      self.STEER_MAX = 409
     else:
       self.STEER_MAX = 255
     self.STEER_DELTA_UP = 3
