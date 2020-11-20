@@ -9,11 +9,6 @@ GearShifter = car.CarState.GearShifter
 
 
 class CarState(CarStateBase):
-  def __init__(self, CP):
-    super().__init__(CP)
-    #dp
-    self.lkMode = True
-
   def update(self, cp, cp_cam):
     ret = car.CarState.new_message()
 
@@ -42,7 +37,7 @@ class CarState(CarStateBase):
     ret.steerWarning = cp.vl["MDPS12"]['CF_Mdps_ToiUnavail'] != 0
 
     # cruise state
-    ret.cruiseState.available = cp.vl["SCC11"]["MainMode_ACC"] != 0 if self.CP.carFingerprint in [CAR.HYUNDAI_GENESIS] else True
+    ret.cruiseState.available = cp.vl["SCC11"]["MainMode_ACC"] != 0 if self.CP.carFingerprint in [CAR.HYUNDAI_GENESIS, CAR.IONIQ] else True
     ret.cruiseState.enabled = cp.vl["SCC12"]['ACCMode'] != 0
     ret.cruiseState.standstill = cp.vl["SCC11"]['SCCInfoDisplay'] == 4.
 
@@ -136,7 +131,6 @@ class CarState(CarStateBase):
     self.steer_state = cp.vl["MDPS12"]['CF_Mdps_ToiActive']  # 0 NOT ACTIVE, 1 ACTIVE
     self.lead_distance = cp.vl["SCC11"]['ACC_ObjDist']
 
-    self.lkMode = bool(cp_cam.vl["LKAS11"]["CF_Lkas_LdwsSysState"])
     return ret
 
   @staticmethod

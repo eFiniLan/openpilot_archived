@@ -165,7 +165,7 @@ class CarController():
       lkas_active, CS.CP.carFingerprint, idx, CS.CP.isPandaBlack, CS.CP.openpilotLongitudinalControl))
 
     # Send dashboard UI commands.
-    if (frame % 10) == 0:
+    if not dragonconf.dpAtl and (frame % 10) == 0:
       idx = (frame//10) % 4
       can_sends.extend(hondacan.create_ui_commands(self.packer, pcm_speed, hud, CS.CP.carFingerprint, CS.is_metric, idx, CS.CP.isPandaBlack, CS.CP.openpilotLongitudinalControl, CS.stock_hud))
 
@@ -189,16 +189,17 @@ class CarController():
         if CS.CP.carFingerprint in HONDA_BOSCH:
           pass # TODO: implement
         else:
-          apply_gas = clip(actuators.gas, 0., 1.)
-          apply_brake = int(clip(self.brake_last * P.BRAKE_MAX, 0, P.BRAKE_MAX - 1))
-          pump_on, self.last_pump_ts = brake_pump_hysteresis(apply_brake, self.apply_brake_last, self.last_pump_ts, ts)
-          can_sends.append(hondacan.create_brake_command(self.packer, apply_brake, pump_on,
-            pcm_override, pcm_cancel_cmd, hud.fcw, idx, CS.CP.carFingerprint, CS.CP.isPandaBlack, CS.stock_brake))
-          self.apply_brake_last = apply_brake
+          if not dragonconf.dpAtl:
+            apply_gas = clip(actuators.gas, 0., 1.)
+            apply_brake = int(clip(self.brake_last * P.BRAKE_MAX, 0, P.BRAKE_MAX - 1))
+            pump_on, self.last_pump_ts = brake_pump_hysteresis(apply_brake, self.apply_brake_last, self.last_pump_ts, ts)
+            can_sends.append(hondacan.create_brake_command(self.packer, apply_brake, pump_on,
+              pcm_override, pcm_cancel_cmd, hud.fcw, idx, CS.CP.carFingerprint, CS.CP.isPandaBlack, CS.stock_brake))
+            self.apply_brake_last = apply_brake
 
-          if CS.CP.enableGasInterceptor:
-            # send exactly zero if apply_gas is zero. Interceptor will send the max between read value and apply_gas.
-            # This prevents unexpected pedal range rescaling
-            can_sends.append(create_gas_command(self.packer, apply_gas, idx))
+            if CS.CP.enableGasInterceptor:
+              # send exactly zero if apply_gas is zero. Interceptor will send the max between read value and apply_gas.
+              # This prevents unexpected pedal range rescaling
+              can_sends.append(create_gas_command(self.packer, apply_gas, idx))
 
     return can_sends
