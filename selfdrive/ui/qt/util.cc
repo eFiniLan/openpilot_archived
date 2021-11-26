@@ -60,15 +60,15 @@ QString timeAgo(const QDateTime &date) {
   QString s;
   if (diff < 60) {
     s = "now";
-  } else if (diff < 60 * 60) {
+  } else if (diff < 3600) { // 60 * 60
     int minutes = diff / 60;
-    s = QString("%1 minute%2 ago").arg(minutes).arg(minutes > 1 ? "s" : "");
-  } else if (diff < 60 * 60 * 24) {
-    int hours = diff / (60 * 60);
-    s = QString("%1 hour%2 ago").arg(hours).arg(hours > 1 ? "s" : "");
-  } else if (diff < 3600 * 24 * 7) {
-    int days = diff / (60 * 60 * 24);
-    s = QString("%1 day%2 ago").arg(days).arg(days > 1 ? "s" : "");
+    s = QString(minutes > 1? "%1 minutes ago" : "%1 minute ago").arg(minutes);
+  } else if (diff < 86400) { // 60 * 60 * 24
+    int hours = diff / 3600;
+    s = QString(hours > 1? "%1 hours ago" : "%1 hour ago").arg(hours);
+  } else if (diff < 604800) { // 3600 * 24 * 7
+    int days = diff / 86400;
+    s = QString(days > 1? "%1 days ago" : "%1 day ago").arg(days);
   } else {
     s = date.date().toString();
   }
